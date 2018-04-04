@@ -1,0 +1,96 @@
+package init
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+
+	"github.com/confbase/cfg/lib/dotcfg"
+)
+
+func Init() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
+		os.Exit(1)
+	}
+
+	dotCfgDirPath := mkDotCfgDir(cwd)
+	mkDotfile(cwd)
+	mkKeyfile(dotCfgDirPath)
+	mkGitIgnore(cwd)
+
+	fmt.Printf("Initialized empty base in %v\n", dotCfgDirPath)
+}
+
+func mkDotCfgDir(baseDir string) string {
+	dirPath := path.Join(baseDir, dotcfg.Dirname)
+	notExistErrOut(dirPath)
+
+	if err := os.Mkdir(dirPath, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to create directory %v\n", dirPath)
+		os.Exit(1)
+	}
+	return dirPath
+}
+
+func mkDotfile(baseDir string) {
+	filePath := path.Join(baseDir, dotcfg.FileName)
+	_, err := os.Stat(filePath)
+	if err == nil || (err != nil && !os.IsNotExist(err)) {
+		fmt.Fprintf(os.Stderr, "error: %v already exists or stat() failed\n", filePath)
+		os.Exit(1)
+	}
+
+	dotfile := dotcfg.File{
+		Templates: make([]string, 0),
+		Instances: make(map[string]string),
+	}
+	data, err := json.Marshal(dotfile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to serialize %v\n", filePath)
+		os.Exit(1)
+	}
+
+	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to write to %v\n", filePath)
+		os.Exit(1)
+	}
+}
+
+func mkKeyfile(baseDir string) {
+	filePath := path.Join(baseDir, dotcfg.KeyfileName)
+	notExistErrOut(filePath)
+
+	keyfile := dotcfg.Key{}
+	data, err := json.Marshal(keyfile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to serialize %v\n", filePath)
+		os.Exit(1)
+	}
+
+	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to write to %v\n", filePath)
+		os.Exit(1)
+	}
+}
+
+func mkGitIgnore(baseDir string) {
+	filePath := path.Join(baseDir, ".gitignore")
+	notExistErrOut(filePath)
+	ignoreBytes := []byte(".cfg/\n")
+	if err := ioutil.WriteFile(filePath, ignoreBytes, 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to write to %v\n", filePath)
+		os.Exit(1)
+	}
+}
+
+func notExistErrOut(filePath string) {
+	_, err := os.Stat(filePath)
+	if err == nil || (err != nil && !os.IsNotExist(err)) {
+		fmt.Fprintf(os.Stderr, "error: %v already exists or stat() failed\n", filePath)
+		os.Exit(1)
+	}
+}
