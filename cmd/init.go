@@ -15,10 +15,12 @@
 package cmd
 
 import (
-	initpkg "github.com/confbase/cfg/init"
+	initpkg "github.com/confbase/cfg/lib/init"
 
 	"github.com/spf13/cobra"
 )
+
+var append, overwrite bool
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -27,10 +29,12 @@ var initCmd = &cobra.Command{
 	Long: `Initializes a new base, using credentials
 specified in the global config file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		initpkg.Init()
+		initpkg.Init(append, overwrite)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(initCmd)
+	initCmd.Flags().BoolVarP(&overwrite, "overwrite-gitignore", "", false, "overwrite .gitignore")
+	initCmd.Flags().BoolVarP(&append, "append-to-gitignore", "", false, "append to .gitignore")
 }

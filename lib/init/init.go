@@ -83,7 +83,7 @@ func mkGitIgnore(baseDir string, append, overwrite bool) {
 	ignoreStr := ".cfg/\n"
 
 	if append {
-		f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to open .gitignore for appending\n")
 			os.Exit(1)

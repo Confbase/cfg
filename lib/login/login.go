@@ -3,10 +3,11 @@ package login
 import (
 	"crypto/md5"
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
 	"net/http"
 	"os"
 	"syscall"
+
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/spf13/viper"
 )

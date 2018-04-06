@@ -15,9 +15,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/confbase/cfg/lib/key"
 )
 
 // insertCmd represents the insert command
@@ -27,22 +27,10 @@ var insertCmd = &cobra.Command{
 	Long: `After generating an access key through the web interface, the key can be
 inserted into ./.cfg.json with this command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("insert called")
+		key.Insert()
 	},
 }
 
 func init() {
 	keyCmd.AddCommand(insertCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// insertCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// insertCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }
