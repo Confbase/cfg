@@ -25,9 +25,10 @@ var tagCmd = &cobra.Command{
 	Use:   "tag",
 	Short: "Tag a file as an instance of a template",
 	Long: `Tags a file as an instance of a certain template.
-Future releases will support group operations on all instances
-of a certain template. Files can also be sorted by tag on the
-Confbase web interface.`,
+
+Future releases will support group operations on all instances of 
+a certain template. Files can also be sorted by tag on the Confbase
+web interface.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Work your own magic here
 		fmt.Println("tag called")

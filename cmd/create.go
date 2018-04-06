@@ -20,32 +20,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// markCmd represents the mark command
-var markCmd = &cobra.Command{
-	Use:   "mark",
-	Short: "Mark a file as a template file",
-	Long: `Marks a file as a template file.
-
-New instances of template files can be created with "cfg new [template-file]".
-
-See related "cfg tag" command.`,
+// createCmd represents the create command
+var createCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Create, insert a key using credentials in ~/.cfg.yaml",
+	Long: `This command creates a key for the current base using credentials found
+ in the global config file. The key is then inserted into ./.cfg.json.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Work your own magic here
-		fmt.Println("mark called")
+		fmt.Println("create called")
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(markCmd)
+	keyCmd.AddCommand(createCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// markCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// markCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 }

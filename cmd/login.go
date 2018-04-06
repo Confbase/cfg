@@ -15,39 +15,26 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/confbase/cfg/lib/login"
 )
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Stores credentials in global config file",
-	Long: `"cfg login" prompts for a username and password
- and stores these credentials in plaintext in the global config
- file upon successfully logging in.
+	Short: "Store credentials in global config file",
+	Long: `WARNING: it is strongly recommended to use per-base access keys instead.
 
-WARNING: it is strongly recommended to use per-base API keys
-instead. API keys can be generated through the web interface
-and can be added to a base with "cfg key".`,
+"cfg login" prompts for a username and password and stores these credentials
+in plain text in the global config file upon successfully logging in.
+
+See "cfg key" for per-base access key management.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("login called")
+		login.Login()
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(loginCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// loginCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// loginCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }
