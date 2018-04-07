@@ -75,8 +75,5 @@ func initConfig() {
 	viper.SetDefault("password", "")
 	viper.SetDefault("entryPoint", "https://confbase.com")
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("using config file:", viper.ConfigFileUsed())
-	}
+	viper.ReadInConfig()
 }
