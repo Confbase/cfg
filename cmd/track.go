@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/track"
+	"github.com/Confbase/cfg/lib/track"
 )
 
 var trackCmd = &cobra.Command{

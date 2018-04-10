@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/remote"
+	"github.com/Confbase/cfg/lib/remote"
 )
 
 // addCmd represents the add command

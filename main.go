@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/confbase/cfg/cmd"
+import "github.com/Confbase/cfg/cmd"
 
 func main() {
 	cmd.Execute()

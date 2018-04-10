@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/ls"
+	"github.com/Confbase/cfg/lib/ls"
 )
 
 // lsCmd represents the ls command

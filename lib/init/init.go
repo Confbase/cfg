@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/confbase/cfg/lib/dotcfg"
+	"github.com/Confbase/cfg/lib/dotcfg"
 )
 
 func Init(append, overwrite bool) {

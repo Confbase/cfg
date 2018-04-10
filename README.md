@@ -4,7 +4,7 @@
 
 ## Installation
 
-Run `go get github.com/confbase/cfg`
+Run `go get github.com/Confbase/cfg`
 
 ## Usage
 

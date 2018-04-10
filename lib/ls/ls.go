@@ -6,8 +6,8 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/confbase/cfg/lib/decorate"
-	"github.com/confbase/cfg/lib/dotcfg"
+	"github.com/Confbase/cfg/lib/decorate"
+	"github.com/Confbase/cfg/lib/dotcfg"
 )
 
 func isStdoutTty() bool {

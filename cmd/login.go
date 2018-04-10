@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/login"
+	"github.com/Confbase/cfg/lib/login"
 )
 
 // loginCmd represents the login command

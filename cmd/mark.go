@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/mark"
+	"github.com/Confbase/cfg/lib/mark"
 )
 
 var markForce bool
