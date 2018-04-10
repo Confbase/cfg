@@ -28,12 +28,12 @@ access keys. There are two ways to acquire and use access keys.
 1. cfg key create
 
 This generates a new access key for this base and inserts it into
-./.cfg.json, using the credentials found in ~/.cfg.yaml.
+./.cfg/key.json, using the credentials found in ~/.cfg.yaml.
 
 2. cfg key insert
 
 After generating a key through the web interface, the key can be
-inserted into ./.cfg.json with this command.`,
+inserted into ./.cfg/key.json with this command.`,
 }
 
 func init() {

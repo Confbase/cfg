@@ -22,8 +22,9 @@ type Template struct {
 
 // .cfg.json is tracked by git
 type File struct {
-	Templates []Template            `json:"templates"`
-	Instances map[string]([]string) `json:"instances"`
+	Templates  []Template            `json:"templates"`
+	Instances  map[string]([]string) `json:"instances"`
+	Singletons []string              `json:"singletons"`
 }
 
 // .cfg/ (including .cfg/key.json) is not tracked by git

@@ -29,18 +29,13 @@ func Ls() {
 }
 
 func LsTemplHuman(cfg *dotcfg.File) {
-	templStr := decorate.LightBlue(decorate.Title("templates\n"))
+	fmt.Println(decorate.LightBlue(decorate.Title("templates")))
 	if len(cfg.Templates) > 0 {
 		for _, t := range cfg.Templates {
-			templStr = fmt.Sprintf(
-				"%v"+decorate.Green("%v: %v\n"),
-				templStr,
-				t.Name,
-				t.FilePath,
-			)
+			fmt.Printf(decorate.Green("%v")+": %v\n", t.Name, t.FilePath)
 		}
 	}
-	fmt.Printf("%v\n", templStr)
+	fmt.Println()
 }
 
 func LsTemplTty(cfg *dotcfg.File) {
@@ -51,20 +46,15 @@ func LsTemplTty(cfg *dotcfg.File) {
 }
 
 func LsInstancesHuman(cfg *dotcfg.File) {
-	instancesStr := decorate.LightBlue(decorate.Title("instances\n"))
+	fmt.Println(decorate.LightBlue(decorate.Title("instances")))
 	if len(cfg.Templates) > 0 {
 		for templ, instances := range cfg.Instances {
 			for _, i := range instances {
-				instancesStr = fmt.Sprintf(
-					"%v"+decorate.Green("%v: %v\n"),
-					instancesStr,
-					i,
-					templ,
-				)
+				fmt.Printf(decorate.Green("%v")+": %v\n", i, templ)
 			}
 		}
 	}
-	fmt.Printf("%v\n", instancesStr)
+	fmt.Println()
 }
 
 func LsInstancesTty(cfg *dotcfg.File) {
@@ -77,10 +67,15 @@ func LsInstancesTty(cfg *dotcfg.File) {
 }
 
 func LsSingletonsHuman(cfg *dotcfg.File) {
-	singletonsStr := decorate.LightBlue(decorate.Title("singletons"))
-	fmt.Printf("%v\n", singletonsStr)
+	fmt.Println(decorate.LightBlue(decorate.Title("singletons")))
+	for _, s := range cfg.Singletons {
+		fmt.Println(s)
+	}
 }
 
 func LsSingletonsTty(cfg *dotcfg.File) {
-	fmt.Printf("singletons")
+	fmt.Println("singletons")
+	for _, s := range cfg.Singletons {
+		fmt.Println(s)
+	}
 }

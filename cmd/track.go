@@ -17,23 +17,19 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/tag"
+	"github.com/confbase/cfg/lib/track"
 )
 
-var tagCmd = &cobra.Command{
-	Use:   "tag <file> <template-name>",
-	Short: "Tag a file as an instance of a template",
-	Long: `Tags a file as an instance of a certain template.
-
-Future releases will support group operations on all instances of 
-a certain template. Files can also be sorted by tag on the Confbase
-web interface.`,
-	Args: cobra.ExactArgs(2),
+var trackCmd = &cobra.Command{
+	Use:   "track <file>",
+	Short: "Track a file as a singleton",
+	Long: `Tracks a file as a singleton.`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		tag.Tag(args[0], args[1])
+		track.Track(args[0])
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(tagCmd)
+	RootCmd.AddCommand(trackCmd)
 }

@@ -28,18 +28,19 @@ var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create, insert a key using credentials in ~/.cfg.yaml",
 	Long: `This command creates a key for the current base using credentials found
- in the global config file. The key is then inserted into ./.cfg.json.`,
+ in the global config file. The key is then inserted into ./.cfg/key.json.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		key.Create(team, base, name, canRead, canWrite, expiry)
 	},
 }
 
 func init() {
+	createCmd.Flags().StringVarP(&team, "team", "t", "", "name of team")
+	createCmd.Flags().StringVarP(&base, "base", "b", "", "name of base")
+	createCmd.Flags().StringVarP(&name, "name", "n", "", "name of key")
+	createCmd.Flags().BoolVarP(&canRead, "can-read", "", false, "specify key read access")
+	createCmd.Flags().BoolVarP(&canWrite, "can-write", "", false, "specify key write access")
+	createCmd.Flags().IntVarP(&expiry, "expiry", "e", 0, "expiry timestamp (seconds since epoch; 0 = never)")
+
 	keyCmd.AddCommand(createCmd)
-	initCmd.Flags().StringVarP(&team, "team", "t", "", "name of team")
-	initCmd.Flags().StringVarP(&base, "base", "b", "", "name of base")
-	initCmd.Flags().StringVarP(&name, "name", "n", "", "name of key")
-	initCmd.Flags().BoolVarP(&canRead, "can-read", "", false, "specify key read access")
-	initCmd.Flags().BoolVarP(&canWrite, "can-write", "", false, "specify key write access")
-	initCmd.Flags().IntVarP(&expiry, "expiry", "e", 0, "expiry timestamp (seconds since epoch; 0 = never)")
 }

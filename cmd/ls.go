@@ -24,7 +24,31 @@ import (
 var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "list the contents of the base",
-	Long:  `Lists the contents of the base in a human-readable format.`,
+	Long:  `Lists the contents of the base.
+
+If stdout is a tty, then the contents are listed in a human-readable format.
+
+If stdout is not a tty, then the contents are listed in the following format:
+
+templates
+<template-name>,<template-file-type>,<template-file-path>
+<template-name>,<template-file-type>,<template-file-path>
+...
+instances
+<template-name>,<instance-file-path>
+<template-name>,<instance-file-path>
+....
+singletons
+<singleton-filepath>
+<singleton-filepath>
+...
+
+That is, the string literal "templates", followed by a newline character and
+ the templates, one per line and in CSV format; followed by the string literal
+ "instances", followed by a newline character and the instances, one per line 
+and in CSV format; followed by the string literal "singletons\n", followed by a
+newline character and the singletons, one per line.
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ls.Ls()
 	},
