@@ -14,10 +14,16 @@ const (
 	KeyfileName = "key.json"  // this file resides in ./.cfg/
 )
 
+type Template struct {
+	Name     string `json:"name"`
+	FilePath string `json:"filePath"`
+	FileType string `json:"fileType"`
+}
+
 // .cfg.json is tracked by git
 type File struct {
-	Templates []string          `json:"templates"`
-	Instances map[string]string `json:"instances"`
+	Templates []Template            `json:"templates"`
+	Instances map[string]([]string) `json:"instances"`
 }
 
 // .cfg/ (including .cfg/key.json) is not tracked by git

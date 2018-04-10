@@ -26,8 +26,8 @@ func Init(append, overwrite bool) {
 	existsErrOut(keyPath, "")
 
 	dotfile := dotcfg.File{
-		Templates: make([]string, 0),
-		Instances: make(map[string]string),
+		Templates: make([]dotcfg.Template, 0),
+		Instances: make(map[string]([]string)),
 	}
 	dotfile.MustSerialize()
 

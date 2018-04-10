@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var append, overwrite bool
+var initAppend, initOverwrite bool
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -29,12 +29,12 @@ var initCmd = &cobra.Command{
 	Long: `Initializes a new base, using credentials
 specified in the global config file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		initpkg.Init(append, overwrite)
+		initpkg.Init(initAppend, initOverwrite)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(initCmd)
-	initCmd.Flags().BoolVarP(&overwrite, "overwrite-gitignore", "", false, "overwrite .gitignore")
-	initCmd.Flags().BoolVarP(&append, "append-to-gitignore", "", false, "append to .gitignore")
+	initCmd.Flags().BoolVarP(&initOverwrite, "overwrite-gitignore", "", false, "overwrite .gitignore")
+	initCmd.Flags().BoolVarP(&initAppend, "append-to-gitignore", "", false, "append to .gitignore")
 }

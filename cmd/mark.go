@@ -15,37 +15,28 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/confbase/cfg/lib/mark"
 )
 
-// markCmd represents the mark command
+var markForce bool
+
 var markCmd = &cobra.Command{
-	Use:   "mark",
+	Use:   "mark <file> <template-name>",
 	Short: "Mark a file as a template file",
 	Long: `Marks a file as a template file.
 
 New instances of template files can be created with "cfg new [template-file]".
 
 See related "cfg tag" command.`,
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("mark called")
+		mark.Mark(args[0], args[1], markForce)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(markCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// markCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// markCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	markCmd.Flags().BoolVarP(&markForce, "force", "", false, "overwrite template if it already exists")
 }

@@ -17,23 +17,19 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/tag"
+	"github.com/confbase/cfg/lib/remote"
 )
 
-var tagCmd = &cobra.Command{
-	Use:   "tag",
-	Short: "Tag a file as an instance of a template",
-	Long: `Tags a file as an instance of a certain template.
-
-Future releases will support group operations on all instances of 
-a certain template. Files can also be sorted by tag on the Confbase
-web interface.`,
-	Args: cobra.ExactArgs(2),
+// lsCmd represents the ls command
+var remoteLsCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "list remotes",
+	Long:  `Lists the remotes in the local keyfile.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		tag.Tag(args[0], args[1])
+		remote.Ls()
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(tagCmd)
+	remoteCmd.AddCommand(remoteLsCmd)
 }

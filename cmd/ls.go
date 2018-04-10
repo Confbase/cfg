@@ -17,19 +17,19 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/confbase/cfg/lib/remote"
+	"github.com/confbase/cfg/lib/ls"
 )
 
 // lsCmd represents the ls command
 var lsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "list remotes",
-	Long:  `Lists the remotes in the local keyfile.`,
+	Short: "list the contents of the base",
+	Long:  `Lists the contents of the base in a human-readable format.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		remote.Ls()
+		ls.Ls()
 	},
 }
 
 func init() {
-	remoteCmd.AddCommand(lsCmd)
+	RootCmd.AddCommand(lsCmd)
 }
