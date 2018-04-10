@@ -3,12 +3,20 @@ package filetype
 import "strings"
 
 const (
-	JSON = "JSON"
+	Json    = "json"
+	Toml    = "toml"
+	Yaml    = "yaml"
+	Unknown = "unknown"
 )
 
 func Guess(fileName string) string {
-	if strings.HasSuffix(strings.ToLower(fileName), ".json") {
-		return JSON
+	lowered := strings.ToLower(fileName)
+	if strings.HasSuffix(lowered, ".json") {
+		return Json
+	} else if strings.HasSuffix(lowered, ".toml") {
+		return Toml
+	} else if strings.HasSuffix(lowered, ".yaml") || strings.HasSuffix(lowered, ".yml") {
+		return Yaml
 	}
 	return "unknown"
 }
