@@ -1,4 +1,6 @@
-# cfg – The official Confbase CLI
+# cfg: The official Confbase CLI
+
+[![Build Status](https://travis-ci.org/Confbase/cfg.svg?branch=master)](https://travis-ci.org/Confbase/cfg)
 
 ## Installation
 
