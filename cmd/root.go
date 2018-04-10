@@ -27,20 +27,22 @@ var cfgFile string
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "cfg",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "The official Confbase CLI",
+	Long: `cfg is the official CLI for Confbase (https://confbase.com).
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+It is a wrapper around git, but provides additionaly functionality in the
+form of templates, instances, singletons, and numerous operations on these
+objects. Furthermore, a raw copy of every file in the latest commit is made
+available via 'cfg fetch'.
+
+cfg intends to be brutalist. All work is done on one branch. When the remote
+branch gets ahead of the local branch, 'cfg trampoline' or 'cfg pull --hard'
+are the only two options to fix the predicament.
+
+If a more traditional workflow is desired, consider moving the configuration
+files back into their codebase's repository and simply using git as before.`,
 }
 
-// Execute adds all child commands to the root command sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -51,14 +53,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports Persistent Flags, which, if defined here,
-	// will be global for your application.
-
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "global-config", "", "global config file (default is $HOME/.cfg.yaml)")
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -23,7 +23,7 @@ import (
 // lsCmd represents the ls command
 var lsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "list the contents of the base",
+	Short: "List the contents of the base",
 	Long:  `Lists the contents of the base.
 
 If stdout is a tty, then the contents are listed in a human-readable format.
