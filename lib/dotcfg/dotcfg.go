@@ -130,3 +130,51 @@ func (k *Key) MustSerialize() {
 		os.Exit(1)
 	}
 }
+
+func (t *Template) Equals(o *Template) bool {
+	if t.Name != o.Name {
+		return false
+	}
+	if t.FilePath != o.FilePath {
+		return false
+	}
+	if t.FileType != o.FileType {
+		return false
+	}
+	return true
+}
+
+func (cfg *File) Equals(o *File) bool {
+	if len(cfg.Templates) != len(o.Templates) {
+		return false
+	}
+	for i, v := range cfg.Templates {
+		if !v.Equals(&o.Templates[i]) {
+			return false
+		}
+	}
+
+	if len(cfg.Instances) != len(o.Instances) {
+		return false
+	}
+	for k, v := range cfg.Instances {
+		if len(v) != len(o.Instances[k]) {
+			return false
+		}
+		for i, vv := range v {
+			if vv != o.Instances[k][i] {
+				return false
+			}
+		}
+	}
+
+	if len(cfg.Singletons) != len(o.Singletons) {
+		return false
+	}
+	for i, v := range cfg.Singletons {
+		if v != o.Singletons[i] {
+			return false
+		}
+	}
+	return true
+}
