@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -101,7 +102,13 @@ func Create(team, base, name string, canRead, canWrite bool, expiry int) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		fmt.Fprintf(os.Stderr, "error: received non-201 status code\n")
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err == nil {
+			fmt.Fprintf(os.Stderr, "error: received non-201 status code: %v\n", string(bodyBytes))
+		} else {
+			fmt.Fprintf(os.Stderr, "error: received non-201 status code\n")
+		}
+		fmt.Fprintf(os.Stderr, "are you sure a key with the specified name and base doesn't already exist?\n")
 		fmt.Fprintf(os.Stderr, "are you sure the specified base exists?\n")
 		fmt.Fprintf(os.Stderr, "are you sure the credentials in the global config file are correct?\n")
 		os.Exit(1)

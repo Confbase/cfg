@@ -30,7 +30,7 @@ var RootCmd = &cobra.Command{
 	Short: "The official Confbase CLI",
 	Long: `cfg is the official CLI for Confbase (https://confbase.com).
 
-It is a wrapper around git, but provides additionaly functionality in the
+It is a wrapper around git, but provides additional functionality in the
 form of templates, instances, singletons, and numerous operations on these
 objects. Furthermore, a raw copy of every file in the latest commit is made
 available via 'cfg fetch'.

@@ -23,7 +23,6 @@ func Add(name, url string) {
 	}
 	key.Remotes[name] = url
 	key.MustSerialize()
-	fmt.Println("successfully added remote")
 }
 
 func Remove(name string) {
@@ -34,7 +33,6 @@ func Remove(name string) {
 	}
 	delete(key.Remotes, name)
 	key.MustSerialize()
-	fmt.Println("successfully removed remote")
 }
 
 func Ls() {
