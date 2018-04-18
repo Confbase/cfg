@@ -127,7 +127,7 @@ func Create(team, base, name string, canRead, canWrite bool, expiry int) {
 	}
 
 	key.Key = respKey.Key
-	key.MustSerialize()
+	key.MustSerialize(nil)
 
 	fmt.Println("successfully created key!")
 }

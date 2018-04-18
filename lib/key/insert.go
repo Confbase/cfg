@@ -22,6 +22,6 @@ func Insert() {
 
 	keyfile := dotcfg.MustLoadKey()
 	keyfile.Key = key
-	keyfile.MustSerialize()
+	keyfile.MustSerialize(nil)
 	fmt.Println("successfully inserted key")
 }

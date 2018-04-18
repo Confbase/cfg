@@ -72,5 +72,5 @@ func Tag(filePath, templName string) {
 	cfg.Instances[templName] = append(cfg.Instances[templName], filePath)
 	fmt.Printf("tagged '%v' as an instance of '%v'\n", filePath, templName)
 
-	cfg.MustSerialize()
+	cfg.MustSerialize(nil)
 }

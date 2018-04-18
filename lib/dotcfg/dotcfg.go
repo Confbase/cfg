@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/Confbase/cfg/lib/rollback"
+	"github.com/Confbase/cfg/lib/util"
 )
 
 const (
@@ -58,10 +61,13 @@ func MustLoadCfg() *File {
 	return &cfg
 }
 
-func (f *File) MustSerialize() {
+func (f *File) MustSerialize(tx *rollback.Tx) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
+		if tx != nil {
+			tx.MustRollback()
+		}
 		os.Exit(1)
 	}
 	filePath := path.Join(cwd, FileName)
@@ -69,12 +75,36 @@ func (f *File) MustSerialize() {
 	cfgBytes, err := json.Marshal(f)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to marshal key\n")
+		if tx != nil {
+			tx.MustRollback()
+		}
 		os.Exit(1)
+	}
+
+	isCreated := false
+	isExist, err := util.Exists(filePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", filePath)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		if tx != nil {
+			tx.MustRollback()
+		}
+		os.Exit(1)
+	}
+	if !isExist {
+		isCreated = true
 	}
 
 	if err := ioutil.WriteFile(filePath, cfgBytes, 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to write %v\n", filePath)
+		if tx != nil {
+			tx.MustRollback()
+		}
 		os.Exit(1)
+	}
+
+	if isCreated {
+		tx.FilesCreated = append(tx.FilesCreated, filePath)
 	}
 }
 
@@ -100,10 +130,13 @@ func MustLoadKey() *Key {
 	return &key
 }
 
-func (k *Key) MustSerialize() {
+func (k *Key) MustSerialize(tx *rollback.Tx) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
+		if tx != nil {
+			tx.MustRollback()
+		}
 		os.Exit(1)
 	}
 
@@ -114,20 +147,56 @@ func (k *Key) MustSerialize() {
 	if err != nil && os.IsNotExist(err) {
 		if err := os.Mkdir(dirPath, 0755); err != nil {
 			fmt.Fprintf(os.Stderr, "error: failed to create directory %v\n", dirPath)
+			if tx != nil {
+				tx.MustRollback()
+			}
 			os.Exit(1)
 		}
+		tx.DirsCreated = append(tx.DirsCreated, dirPath)
+	} else if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", dirPath)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		if tx != nil {
+			tx.MustRollback()
+		}
+		os.Exit(1)
 	}
 
 	keyBytes, err := json.Marshal(k)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to marshal key\n")
+		if tx != nil {
+			tx.MustRollback()
+		}
 		os.Exit(1)
 	}
 
 	keyPath := path.Join(dirPath, KeyfileName)
+
+	isCreated := false
+	isExist, err := util.Exists(keyPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", keyPath)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		if tx != nil {
+			tx.MustRollback()
+		}
+		os.Exit(1)
+	}
+	if !isExist {
+		isCreated = true
+	}
+
 	if err := ioutil.WriteFile(keyPath, keyBytes, 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to write %v\n", keyPath)
+		if tx != nil {
+			tx.MustRollback()
+		}
 		os.Exit(1)
+	}
+
+	if isCreated {
+		tx.FilesCreated = append(tx.FilesCreated, keyPath)
 	}
 }
 

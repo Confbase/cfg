@@ -54,5 +54,5 @@ func Mark(filePath, templ string, force bool) {
 		fmt.Printf("overwrote template '%v'\n", templ)
 	}
 
-	cfg.MustSerialize()
+	cfg.MustSerialize(nil)
 }

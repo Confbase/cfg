@@ -22,7 +22,7 @@ func Add(name, url string) {
 		os.Exit(1)
 	}
 	key.Remotes[name] = url
-	key.MustSerialize()
+	key.MustSerialize(nil)
 }
 
 func Remove(name string) {
@@ -32,7 +32,7 @@ func Remove(name string) {
 		os.Exit(1)
 	}
 	delete(key.Remotes, name)
-	key.MustSerialize()
+	key.MustSerialize(nil)
 }
 
 func Ls() {

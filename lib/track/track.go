@@ -32,5 +32,5 @@ func Track(filePath string) {
 	cfg.Singletons = append(cfg.Singletons, filePath)
 	fmt.Printf("marked '%v' as a singleton\n", filePath)
 
-	cfg.MustSerialize()
+	cfg.MustSerialize(nil)
 }
