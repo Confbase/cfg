@@ -20,7 +20,8 @@ import (
 	"github.com/Confbase/cfg/lib/ls"
 )
 
-// lsCmd represents the ls command
+var lsNoTty, lsNoColors bool
+
 var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List the contents of the base",
@@ -28,7 +29,8 @@ var lsCmd = &cobra.Command{
 
 If stdout is a tty, then the contents are listed in a human-readable format.
 
-If stdout is not a tty, then the contents are listed in the following format:
+If stdout is not a tty, or if the --no-tty flag is used, then the contents
+are listed in the following format:
 
 templates
 <template-name>,<template-file-type>,<template-file-path>
@@ -44,16 +46,18 @@ singletons
 ...
 
 That is, the string literal "templates", followed by a newline character and
- the templates, one per line and in CSV format; followed by the string literal
- "instances", followed by a newline character and the instances, one per line 
+the templates, one per line and in CSV format; followed by the string literal
+"instances", followed by a newline character and the instances, one per line
 and in CSV format; followed by the string literal "singletons\n", followed by a
 newline character and the singletons, one per line.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		ls.Ls()
+		ls.Ls(lsNoTty, lsNoColors)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(lsCmd)
+	lsCmd.Flags().BoolVarP(&lsNoTty, "no-tty", "", false, "do not print in human-readable format")
+	lsCmd.Flags().BoolVarP(&lsNoColors, "no-colors", "", false, "do not colorize text")
 }

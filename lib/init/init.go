@@ -9,6 +9,7 @@ import (
 
 	"github.com/Confbase/cfg/lib/dotcfg"
 	"github.com/Confbase/cfg/lib/rollback"
+	"github.com/Confbase/cfg/lib/track"
 	"github.com/Confbase/cfg/lib/util"
 )
 
@@ -45,7 +46,7 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 		initGitRepo(cwd, tx)
 		cfg.MustStageSelf()
 		cfg.MustCommitSelf()
-		cfg.MustAddGitIgnore()
+		track.Track(".gitignore")
 	}
 
 	fmt.Printf("Initialized empty base in %v\n", cwd)

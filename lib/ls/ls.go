@@ -14,13 +14,19 @@ func isStdoutTty() bool {
 	return terminal.IsTerminal(int(os.Stdout.Fd()))
 }
 
-func Ls() {
+func Ls(noTty, noColors bool) {
 	cfg := dotcfg.MustLoadCfg()
 
-	if isStdoutTty() {
-		LsTemplHuman(cfg)
-		LsInstancesHuman(cfg)
-		LsSingletonsHuman(cfg)
+	if isStdoutTty() && !noTty {
+		d := decorate.New()
+		d.Enabled = !noColors
+
+		snaps := dotcfg.MustLoadSnaps()
+		fmt.Printf("## %v\n", d.Green(snaps.Current))
+
+		LsTemplHuman(cfg, d)
+		LsInstancesHuman(cfg, d)
+		LsSingletonsHuman(cfg, d)
 	} else {
 		LsTemplTty(cfg)
 		LsInstancesTty(cfg)
@@ -28,11 +34,11 @@ func Ls() {
 	}
 }
 
-func LsTemplHuman(cfg *dotcfg.File) {
-	fmt.Println(decorate.LightBlue(decorate.Title("templates")))
+func LsTemplHuman(cfg *dotcfg.File, d *decorate.Decorator) {
+	fmt.Println(d.LightBlue(d.Title("templates")))
 	if len(cfg.Templates) > 0 {
 		for _, t := range cfg.Templates {
-			fmt.Printf(decorate.Green("%v")+": %v\n", t.Name, t.FilePath)
+			fmt.Printf(d.Green("%v")+": %v\n", t.Name, t.FilePath)
 		}
 	}
 	fmt.Println()
@@ -45,12 +51,12 @@ func LsTemplTty(cfg *dotcfg.File) {
 	}
 }
 
-func LsInstancesHuman(cfg *dotcfg.File) {
-	fmt.Println(decorate.LightBlue(decorate.Title("instances")))
+func LsInstancesHuman(cfg *dotcfg.File, d *decorate.Decorator) {
+	fmt.Println(d.LightBlue(d.Title("instances")))
 	if len(cfg.Templates) > 0 {
 		for templ, instances := range cfg.Instances {
 			for _, i := range instances {
-				fmt.Printf(decorate.Green("%v")+": %v\n", i, templ)
+				fmt.Printf(d.Green("%v")+": %v\n", i, templ)
 			}
 		}
 	}
@@ -66,8 +72,8 @@ func LsInstancesTty(cfg *dotcfg.File) {
 	}
 }
 
-func LsSingletonsHuman(cfg *dotcfg.File) {
-	fmt.Println(decorate.LightBlue(decorate.Title("singletons")))
+func LsSingletonsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
+	fmt.Println(d.LightBlue(d.Title("singletons")))
 	for _, s := range cfg.Singletons {
 		fmt.Println(s)
 	}

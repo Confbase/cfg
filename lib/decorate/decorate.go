@@ -2,6 +2,37 @@ package decorate
 
 import "fmt"
 
+type Decorator struct {
+	Enabled bool
+}
+
+func New() *Decorator {
+	return &Decorator{Enabled: true}
+}
+
+func (d *Decorator) Decorate(s, code string) string {
+	if d.Enabled {
+		return Decorate(s, code)
+	}
+	return s
+}
+
+func (d *Decorator) Title(s string) string {
+	return d.Decorate(d.Decorate(s, "1"), "4")
+}
+
+func (d *Decorator) Red(s string) string {
+	return d.Decorate(s, "0;31")
+}
+
+func (d *Decorator) Green(s string) string {
+	return d.Decorate(s, "0;32")
+}
+
+func (d *Decorator) LightBlue(s string) string {
+	return d.Decorate(s, "1;34")
+}
+
 func Decorate(s, code string) string {
 	return fmt.Sprintf("\033[%vm%v\033[0m", code, s)
 }
@@ -14,58 +45,10 @@ func Red(s string) string {
 	return Decorate(s, "0;31")
 }
 
-func Black(s string) string {
-        return Decorate(s, "0;30")
-}
-
-func DarkGrey(s string) string {
-	return Decorate(s, "1;30")
-}
-
-func LightRed(s string) string {
-	return Decorate(s, "1;31")
-}
-
 func Green(s string) string {
-        return Decorate(s, "0;32")
-}
-
-func LightGreen(s string) string {
-	return Decorate(s, "1;32")
-}
-
-func Orange(s string) string {
-	return Decorate(s, "0;33")
-}
-
-func Yellow(s string) string {
-        return Decorate(s, "1;33")
-}
-
-func Blue(s string) string {
-	return Decorate(s, "0;34")
+	return Decorate(s, "0;32")
 }
 
 func LightBlue(s string) string {
 	return Decorate(s, "1;34")
-}
-
-func Purple(s string) string {
-	return Decorate(s, "0;35")
-}
-
-func LightPurple(s string) string {
-	return Decorate(s, "1;35")
-}
-
-func Cyan(s string) string {
-	return Decorate(s, "0;36")
-}
-
-func LightCyan(s string) string {
-	return Decorate(s, "1;36")
-}
-
-func LightGray(s string) string {
-	return Decorate(s, "0;37")
 }

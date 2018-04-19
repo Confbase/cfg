@@ -41,7 +41,7 @@ func Mark(filePath, templ string, force bool) {
 		fmt.Printf("created new template '%v'\n", templ)
 	} else {
 		if !force {
-			fmt.Fprintf(os.Stderr, "template '%v' alredy exists; use --force to overwrite it\n", templ)
+			fmt.Fprintf(os.Stderr, "template '%v' already exists; use --force to overwrite it\n", templ)
 			os.Exit(1)
 		}
 
@@ -55,4 +55,8 @@ func Mark(filePath, templ string, force bool) {
 	}
 
 	cfg.MustSerialize(nil)
+	if !cfg.NoGit {
+		cfg.MustStage()
+		cfg.MustCommit()
+	}
 }

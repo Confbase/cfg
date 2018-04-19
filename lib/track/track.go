@@ -31,6 +31,8 @@ func Track(filePath string) {
 
 	cfg.Singletons = append(cfg.Singletons, filePath)
 	cfg.MustSerialize(nil)
-	cfg.MustStage()
-	cfg.MustCommit()
+	if !cfg.NoGit {
+		cfg.MustStage()
+		cfg.MustCommit()
+	}
 }

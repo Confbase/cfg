@@ -73,4 +73,8 @@ func Tag(filePath, templName string) {
 	fmt.Printf("tagged '%v' as an instance of '%v'\n", filePath, templName)
 
 	cfg.MustSerialize(nil)
+	if !cfg.NoGit {
+		cfg.MustStage()
+		cfg.MustCommit()
+	}
 }
