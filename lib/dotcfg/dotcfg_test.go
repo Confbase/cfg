@@ -44,11 +44,8 @@ func TestMustLoadCfg(t *testing.T) {
 		t.Fatalf("failed to copy %v to %v\nerror: %v", srcFileName, destFileName, err)
 	}
 
-	expect := File{
-		Templates:  make([]Template, 0),
-		Instances:  make(map[string]([]string)),
-		Singletons: make([]string, 0),
-	}
+	expect := NewCfg()
+	expect.NoGit = true
 	expect.Templates = append(
 		expect.Templates,
 		Template{
@@ -82,7 +79,7 @@ func TestMustLoadCfg(t *testing.T) {
 	)
 
 	got := MustLoadCfg()
-	if !got.Equals(&expect) {
+	if !got.Equals(expect) {
 		t.Errorf("expected %v but got %v", expect, got)
 	}
 

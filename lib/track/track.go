@@ -30,7 +30,7 @@ func Track(filePath string) {
 	}
 
 	cfg.Singletons = append(cfg.Singletons, filePath)
-	fmt.Printf("marked '%v' as a singleton\n", filePath)
-
+	cfg.MustStage()
+	cfg.MustCommit()
 	cfg.MustSerialize(nil)
 }

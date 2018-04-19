@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/spf13/viper"
-
 	"github.com/Confbase/cfg/lib/dotcfg"
 	"github.com/Confbase/cfg/lib/rollback"
 	"github.com/Confbase/cfg/lib/util"
@@ -24,33 +22,30 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noGitIgnore bool) {
 	filePath := path.Join(cwd, dotcfg.FileName)
 	dirPath := path.Join(cwd, dotcfg.Dirname)
 	keyPath := path.Join(dirPath, dotcfg.KeyfileName)
+
 	existsErrOut(filePath, "", nil)
 	existsErrOut(dirPath, "", nil)
 	existsErrOut(keyPath, "", nil)
 
 	tx := rollback.NewTx()
 
-	if !noGit {
-		initGitRepo(cwd, tx)
-	}
-
 	if !noGitIgnore {
 		mkGitIgnore(cwd, appendGitIgnore, overwriteGitIgnore, tx)
 	}
 
-	dotfile := dotcfg.File{
-		Templates:  make([]dotcfg.Template, 0),
-		Instances:  make(map[string]([]string)),
-		Singletons: make([]string, 0),
-	}
-	dotfile.MustSerialize(tx)
+	cfg := dotcfg.NewCfg()
+	cfg.NoGit = noGit
+	cfg.MustSerialize(tx)
 
-	keyfile := dotcfg.Key{
-		Remotes:    make(map[string]string),
-		Email:      viper.GetString("email"),
-		EntryPoint: viper.GetString("entryPoint"),
-	}
+	keyfile := dotcfg.NewKey()
 	keyfile.MustSerialize(tx)
+
+	if !cfg.NoGit {
+		initGitRepo(cwd, tx)
+		cfg.MustStageSelf()
+		cfg.MustCommitSelf()
+		cfg.MustAddGitIgnore()
+	}
 
 	fmt.Printf("Initialized empty base in %v\n", cwd)
 }

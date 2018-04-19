@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
+
+	"github.com/spf13/viper"
 
 	"github.com/Confbase/cfg/lib/rollback"
 	"github.com/Confbase/cfg/lib/util"
@@ -28,6 +31,16 @@ type File struct {
 	Templates  []Template            `json:"templates"`
 	Instances  map[string]([]string) `json:"instances"`
 	Singletons []string              `json:"singletons"`
+	NoGit      bool                  `json:"noGit"`
+}
+
+func NewCfg() *File {
+	return &File{
+		Templates:  make([]Template, 0),
+		Instances:  make(map[string]([]string)),
+		Singletons: make([]string, 0),
+		NoGit:      false,
+	}
 }
 
 // .cfg/ (including .cfg/key.json) is not tracked by git
@@ -37,6 +50,15 @@ type Key struct {
 
 	EntryPoint string            `json:"entryPoint"` // Confbase API base URL
 	Remotes    map[string]string `json:"remotes"`
+}
+
+func NewKey() *Key {
+	return &Key{
+		Email: viper.GetString("email"),
+
+		EntryPoint: viper.GetString("entryPoint"),
+		Remotes:    make(map[string]string),
+	}
 }
 
 func MustLoadCfg() *File {
@@ -214,6 +236,10 @@ func (t *Template) Equals(o *Template) bool {
 }
 
 func (cfg *File) Equals(o *File) bool {
+	if cfg.NoGit != o.NoGit {
+		return false
+	}
+
 	if len(cfg.Templates) != len(o.Templates) {
 		return false
 	}
@@ -246,4 +272,56 @@ func (cfg *File) Equals(o *File) bool {
 		}
 	}
 	return true
+}
+
+func mustStage(filePath string) {
+	cmd := exec.Command("git", "add", filePath)
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to stage %v\n", filePath)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}
+
+func mustCommit(msg string) {
+	cmd := exec.Command("git", "commit", "-m", msg)
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to commit\n")
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (cfg *File) MustStage() {
+	for _, t := range cfg.Templates {
+		mustStage(t.FilePath)
+	}
+	for _, t := range cfg.Instances {
+		for _, i := range t {
+			mustStage(i)
+		}
+	}
+	for _, s := range cfg.Singletons {
+		mustStage(s)
+	}
+	cfg.MustStageSelf()
+}
+
+func (cfg *File) MustCommit() {
+	// TODO: figure out changes and make appropriate message
+	msg := "add changes"
+	mustCommit(msg)
+}
+
+func (cfg *File) MustStageSelf() {
+	mustStage(".cfg.json")
+}
+
+func (cfg *File) MustCommitSelf() {
+	mustCommit("add .cfg.json")
+}
+
+func (cfg *File) MustAddGitIgnore() {
+	mustStage(".gitignore")
+	mustCommit("add .gitignore")
 }
