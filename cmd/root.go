@@ -28,19 +28,7 @@ var cfgFile string
 var RootCmd = &cobra.Command{
 	Use:   "cfg",
 	Short: "The official Confbase CLI",
-	Long: `cfg is the official CLI for Confbase (https://confbase.com).
-
-It is a wrapper around git, but provides additional functionality in the
-form of templates, instances, singletons, and numerous operations on these
-objects. Furthermore, a raw copy of every file in the latest commit is made
-available via 'cfg fetch'.
-
-cfg intends to be brutalist. All work is done on one branch. When the remote
-branch gets ahead of the local branch, 'cfg trampoline' or 'cfg pull --hard'
-are the only two options to fix the predicament.
-
-If a more traditional workflow is desired, consider moving the configuration
-files back into their codebase's repository and simply using git as before.`,
+	Long: `cfg is the official CLI for Confbase (https://confbase.com)`,
 }
 
 func Execute() {
