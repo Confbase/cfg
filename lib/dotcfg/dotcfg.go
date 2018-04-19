@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	Dirname     = ".cfg"      // this dir resides in ./
-	FileName    = ".cfg.json" // this file resides in ./
-	KeyfileName = "key.json"  // this file resides in ./.cfg/
+	Dirname       = ".cfg"       // this dir resides in ./
+	FileName      = ".cfg.json"  // this file resides in ./
+	KeyfileName   = "key.json"   // this file resides in ./.cfg/
+	SnapsFileName = "snaps.json" // this file resides in ./.cfg/
 )
 
 type Template struct {
@@ -43,7 +44,7 @@ func NewCfg() *File {
 	}
 }
 
-// .cfg/ (including .cfg/key.json) is not tracked by git
+// everything in .cfg/ (including .cfg/key.json) is not tracked by git
 type Key struct {
 	Email string `json:"email"`
 	Key   string `json:"key"`
@@ -58,6 +59,24 @@ func NewKey() *Key {
 
 		EntryPoint: viper.GetString("entryPoint"),
 		Remotes:    make(map[string]string),
+	}
+}
+
+type Snapshot struct {
+	Name string `json:"name"`
+}
+
+// everything in .cfg/ (including .cfg/snaps) is not tracked by git
+// however, snaps are pushed to Confbase servers
+type Snaps struct {
+	Current   string     `json:"current"`
+	Snapshots []Snapshot `json:"snapshots"`
+}
+
+func NewSnaps() *Snaps {
+	return &Snaps{
+		Current:   "master",
+		Snapshots: []Snapshot{{Name: "master"}},
 	}
 }
 
@@ -222,6 +241,130 @@ func (k *Key) MustSerialize(tx *rollback.Tx) {
 	}
 }
 
+func MustLoadSnaps() *Snaps {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
+		os.Exit(1)
+	}
+	snapsPath := path.Join(cwd, Dirname, SnapsFileName)
+
+	f, err := os.OpenFile(snapsPath, os.O_RDONLY, 0644)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to open %v\n", snapsPath)
+		os.Exit(1)
+	}
+
+	snaps := Snaps{}
+	if err := json.NewDecoder(f).Decode(&snaps); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to parse %v\n", snapsPath)
+		os.Exit(1)
+	}
+	return &snaps
+}
+
+func (s *Snaps) MustSerialize(tx *rollback.Tx) {
+	if err := s.Serialize(tx); err != nil {
+		fmt.Fprintf(os.Stderr, "%v", err)
+		os.Exit(1)
+	}
+}
+
+func (s *Snaps) Serialize(tx *rollback.Tx) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		composedErr := fmt.Errorf("error: failed to get working directory\n%v\n", err)
+		var txErr error
+		if tx != nil {
+			txErr = tx.Rollback()
+		}
+		if txErr != nil {
+			composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
+		}
+		return composedErr
+	}
+
+	dirPath := path.Join(cwd, Dirname)
+
+	// mkdir if not exist
+	_, err = os.Stat(dirPath)
+	if err != nil && os.IsNotExist(err) {
+		if err := os.Mkdir(dirPath, 0755); err != nil {
+			composedErr := fmt.Errorf("error: failed to create directory %v\n", dirPath)
+			var txErr error
+			if tx != nil {
+				txErr = tx.Rollback()
+			}
+			if txErr != nil {
+				composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
+			}
+			return composedErr
+		}
+		tx.DirsCreated = append(tx.DirsCreated, dirPath)
+	} else if err != nil {
+		composedErr := fmt.Errorf("error: failed to stat %v\n", dirPath)
+		composedErr = fmt.Errorf("%v%v\n", composedErr, err)
+		var txErr error
+		if tx != nil {
+			txErr = tx.Rollback()
+		}
+		if txErr != nil {
+			composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
+		}
+		return composedErr
+	}
+
+	snapsBytes, err := json.Marshal(s)
+	if err != nil {
+		composedErr := fmt.Errorf("error: failed to marshal snapshots file\n")
+		var txErr error
+		if tx != nil {
+			txErr = tx.Rollback()
+		}
+		if txErr != nil {
+			composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
+		}
+		return composedErr
+	}
+
+	snapsPath := path.Join(dirPath, SnapsFileName)
+
+	isCreated := false
+	isExist, err := util.Exists(snapsPath)
+	if err != nil {
+		composedErr := fmt.Errorf("error: failed to stat %v\n", snapsPath)
+		composedErr = fmt.Errorf("%v%v\n", composedErr, err)
+		var txErr error
+		if tx != nil {
+			txErr = tx.Rollback()
+		}
+		if txErr != nil {
+			composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
+		}
+		return composedErr
+	}
+	if !isExist {
+		isCreated = true
+	}
+
+	if err := ioutil.WriteFile(snapsPath, snapsBytes, 0644); err != nil {
+		composedErr := fmt.Errorf("error: failed to write %v\n", snapsPath)
+		var txErr error
+		if tx != nil {
+			txErr = tx.Rollback()
+		}
+		if txErr != nil {
+			composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
+		}
+		return composedErr
+	}
+
+	if isCreated {
+		tx.FilesCreated = append(tx.FilesCreated, snapsPath)
+	}
+	return nil
+}
+
 func (t *Template) Equals(o *Template) bool {
 	if t.Name != o.Name {
 		return false
@@ -324,4 +467,12 @@ func (cfg *File) MustCommitSelf() {
 func (cfg *File) MustAddGitIgnore() {
 	mustStage(".gitignore")
 	mustCommit("add .gitignore")
+}
+
+func (cfg *File) MustPushRaw() {
+
+}
+
+func (s *Snaps) Push() error {
+	return nil
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/Confbase/cfg/lib/util"
 )
 
-func Init(appendGitIgnore, overwriteGitIgnore, noGit, noGitIgnore bool) {
+func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
@@ -21,15 +21,13 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noGitIgnore bool) {
 
 	filePath := path.Join(cwd, dotcfg.FileName)
 	dirPath := path.Join(cwd, dotcfg.Dirname)
-	keyPath := path.Join(dirPath, dotcfg.KeyfileName)
 
 	existsErrOut(filePath, "", nil)
 	existsErrOut(dirPath, "", nil)
-	existsErrOut(keyPath, "", nil)
 
 	tx := rollback.NewTx()
 
-	if !noGitIgnore {
+	if !noModGitIgnore {
 		mkGitIgnore(cwd, appendGitIgnore, overwriteGitIgnore, tx)
 	}
 
@@ -39,6 +37,9 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noGitIgnore bool) {
 
 	keyfile := dotcfg.NewKey()
 	keyfile.MustSerialize(tx)
+
+	snaps := dotcfg.NewSnaps()
+	snaps.MustSerialize(tx)
 
 	if !cfg.NoGit {
 		initGitRepo(cwd, tx)

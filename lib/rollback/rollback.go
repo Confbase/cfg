@@ -36,3 +36,24 @@ func (tx *Tx) MustRollback() {
 		}
 	}
 }
+
+func (tx *Tx) Rollback() error {
+	fmt.Fprintf(os.Stderr, "rolling back changes\n")
+	for _, f := range tx.FilesCreated {
+		if err := os.Remove(f); err != nil {
+			txErr := fmt.Errorf("error: failed to remove %v\n", f)
+			txErr = fmt.Errorf("%v%v\n", txErr, err)
+			txErr = fmt.Errorf("%vfailed to rollback changes\n", txErr)
+			return txErr
+		}
+	}
+	for _, d := range tx.DirsCreated {
+		if err := os.RemoveAll(d); err != nil {
+			txErr := fmt.Errorf("error: failed to remove %v\n", d)
+			txErr = fmt.Errorf("%v%v\n", txErr, err)
+			txErr = fmt.Errorf("%vfailed to rollback changes\n", txErr)
+			return txErr
+		}
+	}
+	return nil
+}

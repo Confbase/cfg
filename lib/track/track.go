@@ -30,7 +30,7 @@ func Track(filePath string) {
 	}
 
 	cfg.Singletons = append(cfg.Singletons, filePath)
+	cfg.MustSerialize(nil)
 	cfg.MustStage()
 	cfg.MustCommit()
-	cfg.MustSerialize(nil)
 }
