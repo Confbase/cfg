@@ -25,7 +25,7 @@ var snapCheckoutCmd = &cobra.Command{
 	Short: "Checkout a snapshot",
 	Long: `Checks out a snapshot.
 
-If the base does not use git, this command is disabled. A post-commit hook has
+If the base does not use git, this command is disabled. A post-checkout hook has
 already been added to the surrounding git repository to checkout the snapshot
 automatically. If there is no surrounding git repository, nothing happens and
 a warning is displayed.`,

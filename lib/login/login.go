@@ -12,22 +12,29 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Login() {
-	fmt.Printf("email: ")
-	var email string
-	if _, err := fmt.Scanln(&email); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+func Login(email, password string) {
+	if email == "" {
+		fmt.Printf("email: ")
+		if _, err := fmt.Scanln(&email); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
-	fmt.Printf("password: ")
-	passBytes, err := terminal.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+	var passBytes []byte
+	if password == "" {
+		fmt.Printf("password: ")
+		var err error
+		passBytes, err = terminal.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		password = string(passBytes[:])
+		fmt.Printf("\n")
+	} else {
+		passBytes = []byte(password)
 	}
-	password := string(passBytes[:])
-	fmt.Printf("\n")
 
 	uri := fmt.Sprintf("%s/api/auth/verify", viper.GetString("entryPoint"))
 

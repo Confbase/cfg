@@ -20,6 +20,8 @@ import (
 	"github.com/Confbase/cfg/lib/login"
 )
 
+var loginUsername, loginPassword string
+
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
@@ -31,10 +33,12 @@ in plain text in the global config file upon successfully logging in.
 
 See "cfg key" for per-base access key management.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		login.Login()
+		login.Login(loginUsername, loginPassword)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(loginCmd)
+	loginCmd.Flags().StringVarP(&loginUsername, "username", "u", "", "username")
+	loginCmd.Flags().StringVarP(&loginPassword, "password", "p", "", "password")
 }
