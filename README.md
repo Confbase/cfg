@@ -15,7 +15,7 @@ Confbase...
 
 * tries to make configuration management easier
 * intends to solve problems similar to those solved by Ansible, Chef, and Puppet
-    * intends to be used along side those products in many ways
+    * intends to be used along side those products
     * intends to compete with those products in many ways
 * leverages git
     * imposes a non-git-like workflow by default (see intended use section below)
@@ -70,7 +70,7 @@ $ ... (do some work, trying to fix the workaround) ...
 
 ```
 ... (the workaround still isn't fixed) ...
-$ cfg fetch myteam.confbase.com:mybase/config.yml --snapshot hacky-workaround
+$ cfg fetch myteam.confbase.com:mybase/config.yml
 
 (or via curl)
 
