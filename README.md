@@ -55,14 +55,14 @@ A raw copy of every file in the latest commit is made available via `cfg fetch`,
 even if the machine running the command does not have git. These files are 
 stored in an in-memory cache on Confbase servers for "blazing-fast" access.
 
-`cfg snapshot` makes the files from any commit permanently accessible via
+`cfg snap new` makes the files from any commit permanently accessible via
 `cfg fetch` (note that they can always be accessed through the underlying git
  repository). For example,
 
 #### development box
 
 ```
-$ cfg snapshot my-new-feature
+$ cfg snap new my-new-feature
 $ #... (update templates to account for new feature) ...
 ```
 
