@@ -36,7 +36,7 @@ func Login(email, password string) {
 		passBytes = []byte(password)
 	}
 
-	uri := fmt.Sprintf("%s/api/auth/verify", viper.GetString("entryPoint"))
+	uri := fmt.Sprintf("http://%s/api/auth/verify", viper.GetString("entryPoint"))
 
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {

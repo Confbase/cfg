@@ -464,11 +464,6 @@ func (cfg *File) MustCommitSelf() {
 	mustCommit("add .cfg.json")
 }
 
-func (cfg *File) MustAddGitIgnore() {
-	mustStage(".gitignore")
-	mustCommit("add .gitignore")
-}
-
 func (cfg *File) MustPushRaw() {
 
 }

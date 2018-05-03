@@ -15,34 +15,33 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/Confbase/cfg/lib/fetch"
 )
 
-// fetchCmd represents the fetch command
+var snapshotToFetch, fetchEmail, fetchPassword string
+var fetchNoGlobal bool
+
 var fetchCmd = &cobra.Command{
-	Use:   "fetch",
+	Use:   "fetch [targets]",
 	Short: "Fetch the latest copy of a file",
 	Long: `Fetches the latest copy of a file without
 downloading the entire base.`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("fetch called")
+		// TODO: consider "pipelining" these requests so we only make one request
+		// TODO: consider moving args into a config struct, since there are so many
+		for _, target := range args {
+			fetch.Fetch(snapshotToFetch, target, fetchEmail, fetchPassword, fetchNoGlobal)
+		}
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(fetchCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// fetchCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// fetchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	fetchCmd.Flags().StringVarP(&snapshotToFetch, "snapshot", "s", "master", "specifies snapshot")
+	fetchCmd.Flags().StringVarP(&fetchEmail, "email", "", "", "specifies email")
+	fetchCmd.Flags().StringVarP(&fetchPassword, "password", "", "", "specifies password")
+	fetchCmd.Flags().BoolVarP(&fetchNoGlobal, "no-global-config", "n", false, "do not use global config file")
 }

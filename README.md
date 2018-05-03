@@ -62,20 +62,29 @@ stored in an in-memory cache on Confbase servers for "blazing-fast" access.
 #### development box
 
 ```
-$ cfg snapshot hacky-workaround
-$ ... (do some work, trying to fix the workaround) ...
+$ cfg snapshot my-new-feature
+$ #... (update templates to account for new feature) ...
 ```
 
 #### production box
 
 ```
-... (the workaround still isn't fixed) ...
-$ cfg fetch myteam.confbase.com:mybase/config.yml
+$ # if you don't want to test the feature on live machines just yet
 
-(or via curl)
+$ # this fetches config.yml from master
+$ cfg fetch myteam:mybase/config.yml
 
-$ curl -u 'key:(key)' myteam.confbase.com/mybase/raw/hacky-workaround/config.yml
+$ # (or via curl and basic auth)
+$ curl -u 'email:password' myteam.confbase.com/mybase/raw/master/config.yml
 ```
+
+When the new feature is ready to be tested on live machines:
+
+```
+$ cfg fetch myteam:mybase/config.yml --snapshot my-new-feature
+```
+
+If all is well, the new feature will get pulled into master.
 
 
 ### Catching errors before commits

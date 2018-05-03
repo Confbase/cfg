@@ -56,7 +56,7 @@ func initConfig() {
 
 	viper.SetDefault("email", "")
 	viper.SetDefault("password", "")
-	viper.SetDefault("entryPoint", "https://confbase.com")
+	viper.SetDefault("entryPoint", "confbase.com")
 
 	viper.ReadInConfig()
 }

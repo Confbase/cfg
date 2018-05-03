@@ -81,7 +81,7 @@ func Create(team, base, name string, canRead, canWrite bool, expiry int) {
 		os.Exit(1)
 	}
 
-	uri := fmt.Sprintf("%s/api/auth/keys/generate", viper.GetString("entryPoint"))
+	uri := fmt.Sprintf("http://%s/api/auth/keys/generate", viper.GetString("entryPoint"))
 
 	req, err := http.NewRequest("POST", uri, bytes.NewBuffer(payload))
 	if err != nil {
