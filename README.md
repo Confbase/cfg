@@ -1,6 +1,6 @@
-# cfg: The official Confbase CLI
+# Overview
 
-[![Build Status](https://travis-ci.org/Confbase/cfg.svg?branch=master)](https://travis-ci.org/Confbase/cfg)
+[![Build Status](https://travis-ci.org/Confbase/cfg.svg?branch=master)](https://travis-ci.org/Confbase/cfg) [![Go Report Card](https://goreportcard.com/badge/github.com/Confbase/cfg)](https://goreportcard.com/report/github.com/Confbase/cfg)
 
 
 Hey! Confbase is still pre-alpha. It is not yet usable. Everything on this
