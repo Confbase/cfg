@@ -15,7 +15,7 @@
 package cmd
 
 import (
-	initpkg "github.com/Confbase/cfg/lib/init"
+	initpkg "github.com/Confbase/cfg/init"
 
 	"github.com/spf13/cobra"
 )

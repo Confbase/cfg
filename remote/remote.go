@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
+	"github.com/Confbase/cfg/dotcfg"
 )
 
 func Add(name, url string) {

@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/lib/key"
+	"github.com/Confbase/cfg/key"
 )
 
 // insertCmd represents the insert command

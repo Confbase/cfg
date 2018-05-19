@@ -7,10 +7,10 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
-	"github.com/Confbase/cfg/lib/rollback"
-	"github.com/Confbase/cfg/lib/track"
-	"github.com/Confbase/cfg/lib/util"
+	"github.com/Confbase/cfg/dotcfg"
+	"github.com/Confbase/cfg/rollback"
+	"github.com/Confbase/cfg/track"
+	"github.com/Confbase/cfg/util"
 )
 
 func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {

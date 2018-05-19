@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
+	"github.com/Confbase/cfg/dotcfg"
 )
 
 func Insert() {

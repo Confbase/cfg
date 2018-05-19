@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
+	"github.com/Confbase/cfg/dotcfg"
 )
 
 func mustUnCheckout() {

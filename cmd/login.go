@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/lib/login"
+	"github.com/Confbase/cfg/login"
 )
 
 var loginUsername, loginPassword string

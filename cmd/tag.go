@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/lib/tag"
+	"github.com/Confbase/cfg/tag"
 )
 
 var tagCmd = &cobra.Command{

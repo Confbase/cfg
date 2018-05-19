@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/Confbase/cfg/lib/rollback"
-	"github.com/Confbase/cfg/lib/util"
+	"github.com/Confbase/cfg/rollback"
+	"github.com/Confbase/cfg/util"
 )
 
 const (

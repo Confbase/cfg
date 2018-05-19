@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/lib/ls"
+	"github.com/Confbase/cfg/ls"
 )
 
 var lsNoTty, lsNoColors bool

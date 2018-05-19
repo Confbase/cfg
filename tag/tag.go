@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
+	"github.com/Confbase/cfg/dotcfg"
 )
 
 func Tag(filePath, templName string) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
+	"github.com/Confbase/cfg/dotcfg"
 )
 
 func Ls(lineMode bool) {

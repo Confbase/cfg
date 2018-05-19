@@ -11,8 +11,8 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
-	"github.com/Confbase/cfg/lib/remote"
+	"github.com/Confbase/cfg/dotcfg"
+	"github.com/Confbase/cfg/remote"
 )
 
 func Create(team, base, name string, canRead, canWrite bool, expiry int) {

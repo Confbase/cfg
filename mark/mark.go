@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Confbase/cfg/lib/dotcfg"
-	"github.com/Confbase/cfg/lib/filetype"
+	"github.com/Confbase/cfg/dotcfg"
+	"github.com/Confbase/cfg/filetype"
 )
 
 func Mark(filePath, templ string, force bool) {
