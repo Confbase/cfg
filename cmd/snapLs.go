@@ -26,7 +26,7 @@ var snapLineMode bool
 var snapLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List snapshots",
-	Long: `Lists snapshots.`,
+	Long:  `Lists snapshots.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		snap.Ls(snapLineMode)
 	},

@@ -25,7 +25,7 @@ var lsNoTty, lsNoColors bool
 var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List the contents of the base",
-	Long:  `Lists the contents of the base.
+	Long: `Lists the contents of the base.
 
 If stdout is a tty, then the contents are listed in a human-readable format.
 
