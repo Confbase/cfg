@@ -1,0 +1,7 @@
+package: github.com/Confbase/cfg
+import:
+- package: github.com/spf13/cobra
+- package: github.com/spf13/viper
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh/terminal
