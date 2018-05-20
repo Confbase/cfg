@@ -1,33 +1,21 @@
 #!/bin/bash
 
 init_minimal_no_git() {
-    if [ -d "cfg_tests" ]; then
-        printf "FAIL. Could not setup test. ./cfg_tests/ already exists.\n"
-        exit 1
-    fi
-
-    mkdir cfg_tests
-    pushd cfg_tests >/dev/null
-
     output=`cfg init --no-git`
     status="$?"
 
     expect_status='0'
     expect="Initialized empty base in $(pwd)"
 
-    popd >/dev/null
-    rm -r cfg_tests
+    contents=`ls -a | xargs`
+    expect_contents='. .. .cfg .cfg.json .gitignore'
+    if [ ! "$contents" = "$expect_contents" ]; then
+        printf 'FAIL. expected cfg_tests/ to have contents:\n%s\ngot:\n%s\n' "$expect_contents" "$contents"
+        exit 1
+    fi
 }
 
 init_minimal_inside_git() {
-    if [ -d "cfg_tests" ]; then
-        printf "FAIL. Could not setup test. ./cfg_tests/ already exists.\n"
-        exit 1
-    fi
-
-    mkdir cfg_tests
-    pushd cfg_tests >/dev/null
-
     output=`cfg init 2>&1`
     status="$?"
 
@@ -42,9 +30,6 @@ rolling back changes'
         printf 'FAIL. expected cfg_tests/ to be empty; got this:\n%s' "$contents"
         exit 1
     fi
-
-    popd >/dev/null
-    rm -r cfg_tests
 }
 
 tests=(

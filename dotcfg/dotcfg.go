@@ -24,7 +24,6 @@ const (
 type Template struct {
 	Name     string `json:"name"`
 	FilePath string `json:"filePath"`
-	FileType string `json:"fileType"`
 }
 
 // .cfg.json is tracked by git
@@ -373,19 +372,6 @@ func (s *Snaps) Serialize(tx *rollback.Tx) error {
 	return nil
 }
 
-func (t *Template) Equals(o *Template) bool {
-	if t.Name != o.Name {
-		return false
-	}
-	if t.FilePath != o.FilePath {
-		return false
-	}
-	if t.FileType != o.FileType {
-		return false
-	}
-	return true
-}
-
 func (cfg *File) Equals(o *File) bool {
 	if cfg.NoGit != o.NoGit {
 		return false
@@ -395,7 +381,7 @@ func (cfg *File) Equals(o *File) bool {
 		return false
 	}
 	for i, v := range cfg.Templates {
-		if !v.Equals(&o.Templates[i]) {
+		if v != o.Templates[i] {
 			return false
 		}
 	}

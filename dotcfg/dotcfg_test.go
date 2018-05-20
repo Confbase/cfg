@@ -51,12 +51,10 @@ func TestMustLoadCfg(t *testing.T) {
 		Template{
 			Name:     "test MustLoadCfg templ name 0",
 			FilePath: ".TestMustLoadCfg_0.json",
-			FileType: "json",
 		},
 		Template{
 			Name:     "test MustLoadCfg templ name 1",
 			FilePath: ".TestMustLoadCfg_1.json",
-			FileType: "json",
 		},
 	)
 	expect.Instances["test MustLoadCfg templ name 0"] = make([]Instance, 0)

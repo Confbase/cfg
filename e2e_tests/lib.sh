@@ -33,6 +33,14 @@ run_test() {
     fi
     requires_network='false'
 
+    if [ -d "cfg_tests" ]; then
+        printf "FAIL. Could not setup test. ./cfg_tests/ already exists.\n"
+        exit 1
+    fi
+
+    mkdir cfg_tests
+    pushd cfg_tests >/dev/null
+
     eval "$fn"
 
     if [ ! "$status" = "$expect_status" ]; then
@@ -60,5 +68,9 @@ run_test() {
             exit 1
         fi
     fi
+
+    popd >/dev/null
+    rm -r cfg_tests    
+
     printf "OK\n"
 }

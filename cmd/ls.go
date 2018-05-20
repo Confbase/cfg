@@ -33,8 +33,8 @@ If stdout is not a tty, or if the --no-tty flag is used, then the contents
 are listed in the following format:
 
 templates
-<template-name>,<template-file-type>,<template-file-path>
-<template-name>,<template-file-type>,<template-file-path>
+<template-name>,<template-file-path>
+<template-name>,<template-file-path>
 ...
 instances
 <template-name>,<instance-file-path>
@@ -44,12 +44,6 @@ singletons
 <singleton-filepath>
 <singleton-filepath>
 ...
-
-That is, the string literal "templates", followed by a newline character and
-the templates, one per line and in CSV format; followed by the string literal
-"instances", followed by a newline character and the instances, one per line
-and in CSV format; followed by the string literal "singletons\n", followed by a
-newline character and the singletons, one per line.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		ls.Ls(lsNoTty, lsNoColors)

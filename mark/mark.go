@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/Confbase/cfg/dotcfg"
-	"github.com/Confbase/cfg/filetype"
 )
 
 func Mark(filePath, templ string, force bool) {
@@ -19,7 +18,6 @@ func Mark(filePath, templ string, force bool) {
 
 	templObj := dotcfg.Template{
 		Name:     templ,
-		FileType: filetype.Guess(filePath),
 		FilePath: filePath,
 	}
 

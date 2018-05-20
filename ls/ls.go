@@ -47,7 +47,7 @@ func LsTemplHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 func LsTemplTty(cfg *dotcfg.File) {
 	fmt.Println("templates")
 	for _, t := range cfg.Templates {
-		fmt.Printf("%v\t%v\t%v\n", t.Name, t.FileType, t.FilePath)
+		fmt.Printf("%v\t%v\n", t.Name, t.FilePath)
 	}
 }
 
@@ -56,7 +56,7 @@ func LsInstancesHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	if len(cfg.Templates) > 0 {
 		for templ, instances := range cfg.Instances {
 			for _, i := range instances {
-				fmt.Printf(d.Green("%v")+": %v\n", i, templ)
+				fmt.Printf(d.Green("%v")+": %v\n", i.FilePath, templ)
 			}
 		}
 	}
@@ -67,7 +67,7 @@ func LsInstancesTty(cfg *dotcfg.File) {
 	fmt.Println("instances")
 	for templ, instances := range cfg.Instances {
 		for _, i := range instances {
-			fmt.Printf("%v\t%v\n", templ, i)
+			fmt.Printf("%v\t%v\n", templ, i.FilePath)
 		}
 	}
 }
@@ -75,13 +75,13 @@ func LsInstancesTty(cfg *dotcfg.File) {
 func LsSingletonsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("singletons")))
 	for _, s := range cfg.Singletons {
-		fmt.Println(s)
+		fmt.Println(s.FilePath)
 	}
 }
 
 func LsSingletonsTty(cfg *dotcfg.File) {
 	fmt.Println("singletons")
 	for _, s := range cfg.Singletons {
-		fmt.Println(s)
+		fmt.Println(s.FilePath)
 	}
 }
