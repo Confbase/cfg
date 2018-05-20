@@ -29,17 +29,25 @@ type Template struct {
 
 // .cfg.json is tracked by git
 type File struct {
-	Templates  []Template            `json:"templates"`
-	Instances  map[string]([]string) `json:"instances"`
-	Singletons []string              `json:"singletons"`
-	NoGit      bool                  `json:"noGit"`
+	Templates  []Template              `json:"templates"`
+	Instances  map[string]([]Instance) `json:"instances"`
+	Singletons []Singleton             `json:"singletons"`
+	NoGit      bool                    `json:"noGit"`
+}
+
+type Singleton struct {
+	FilePath string `json:"filePath"`
+}
+
+type Instance struct {
+	FilePath string `json:"filePath"`
 }
 
 func NewCfg() *File {
 	return &File{
 		Templates:  make([]Template, 0),
-		Instances:  make(map[string]([]string)),
-		Singletons: make([]string, 0),
+		Instances:  make(map[string]([]Instance)),
+		Singletons: make([]Singleton, 0),
 		NoGit:      false,
 	}
 }
@@ -441,11 +449,11 @@ func (cfg *File) MustStage() {
 	}
 	for _, t := range cfg.Instances {
 		for _, i := range t {
-			mustStage(i)
+			mustStage(i.FilePath)
 		}
 	}
 	for _, s := range cfg.Singletons {
-		mustStage(s)
+		mustStage(s.FilePath)
 	}
 	cfg.MustStageSelf()
 }

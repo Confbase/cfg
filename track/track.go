@@ -18,7 +18,7 @@ func Track(filePath string) {
 
 	containsSingleton := false
 	for _, singleton := range cfg.Singletons {
-		if singleton == filePath {
+		if singleton.FilePath == filePath {
 			containsSingleton = true
 			break
 		}
@@ -29,7 +29,7 @@ func Track(filePath string) {
 		os.Exit(1)
 	}
 
-	cfg.Singletons = append(cfg.Singletons, filePath)
+	cfg.Singletons = append(cfg.Singletons, dotcfg.Singleton{FilePath: filePath})
 	cfg.MustSerialize(nil)
 	if !cfg.NoGit {
 		cfg.MustStage()

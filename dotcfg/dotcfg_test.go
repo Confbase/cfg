@@ -59,23 +59,23 @@ func TestMustLoadCfg(t *testing.T) {
 			FileType: "json",
 		},
 	)
-	expect.Instances["test MustLoadCfg templ name 0"] = make([]string, 0)
+	expect.Instances["test MustLoadCfg templ name 0"] = make([]Instance, 0)
 	expect.Instances["test MustLoadCfg templ name 0"] = append(
 		expect.Instances["test MustLoadCfg instance key"],
-		".test_MustLoadCfg_instance_element_0",
-		".test_MustLoadCfg_instance_element_1",
+		Instance{FilePath: ".test_MustLoadCfg_instance_element_0"},
+		Instance{FilePath: ".test_MustLoadCfg_instance_element_1"},
 	)
-	expect.Instances["test MustLoadCfg templ name 1"] = make([]string, 0)
+	expect.Instances["test MustLoadCfg templ name 1"] = make([]Instance, 0)
 	expect.Instances["test MustLoadCfg templ name 1"] = append(
 		expect.Instances["test MustLoadCfg instance key"],
-		".test_MustLoadCfg_instance_element_2",
-		".test_MustLoadCfg_instance_element_3",
+		Instance{FilePath: ".test_MustLoadCfg_instance_element_2"},
+		Instance{FilePath: ".test_MustLoadCfg_instance_element_3"},
 	)
-	expect.Singletons = make([]string, 0)
+	expect.Singletons = make([]Singleton, 0)
 	expect.Singletons = append(
 		expect.Singletons,
-		".test_MustLoadCfg_singletons_element_0",
-		".test_MustLoadCfg_singletons_element_1",
+		Singleton{FilePath: ".test_MustLoadCfg_singletons_element_0"},
+		Singleton{FilePath: ".test_MustLoadCfg_singletons_element_1"},
 	)
 
 	got := MustLoadCfg()

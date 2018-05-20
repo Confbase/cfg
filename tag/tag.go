@@ -53,12 +53,12 @@ func Tag(filePath, templName string) {
 	}
 
 	if _, ok := cfg.Instances[templName]; !ok {
-		cfg.Instances[templName] = make([]string, 0)
+		cfg.Instances[templName] = make([]dotcfg.Instance, 0)
 	}
 
 	containsInstance := false
 	for _, instance := range cfg.Instances[templName] {
-		if instance == filePath {
+		if instance.FilePath == filePath {
 			containsInstance = true
 			break
 		}
@@ -69,7 +69,7 @@ func Tag(filePath, templName string) {
 		os.Exit(1)
 	}
 
-	cfg.Instances[templName] = append(cfg.Instances[templName], filePath)
+	cfg.Instances[templName] = append(cfg.Instances[templName], dotcfg.Instance{FilePath: filePath})
 	fmt.Printf("tagged '%v' as an instance of '%v'\n", filePath, templName)
 
 	cfg.MustSerialize(nil)
