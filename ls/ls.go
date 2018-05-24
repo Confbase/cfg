@@ -22,7 +22,7 @@ func Ls(noTty, noColors bool) {
 		d.Enabled = !noColors
 
 		snaps := dotcfg.MustLoadSnaps()
-		fmt.Printf("## %v\n", snaps.Current)
+		fmt.Printf("## %v\n", snaps.Current.Name)
 
 		LsTemplHuman(cfg, d)
 		LsInstancesHuman(cfg, d)

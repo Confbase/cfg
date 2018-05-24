@@ -53,9 +53,7 @@ func NewCfg() *File {
 
 // everything in .cfg/ (including .cfg/key.json) is not tracked by git
 type Key struct {
-	Email string `json:"email"`
-	Key   string `json:"key"`
-
+	Email      string            `json:"email"`
 	EntryPoint string            `json:"entryPoint"` // Confbase API base URL
 	Remotes    map[string]string `json:"remotes"`
 }
@@ -76,13 +74,13 @@ type Snapshot struct {
 // everything in .cfg/ (including .cfg/snaps) is not tracked by git
 // however, snaps are pushed to Confbase servers
 type Snaps struct {
-	Current   string     `json:"current"`
+	Current   Snapshot   `json:"current"`
 	Snapshots []Snapshot `json:"snapshots"`
 }
 
 func NewSnaps() *Snaps {
 	return &Snaps{
-		Current:   "master",
+		Current:   Snapshot{Name: "master"},
 		Snapshots: []Snapshot{{Name: "master"}},
 	}
 }

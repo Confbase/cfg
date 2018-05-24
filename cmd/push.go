@@ -15,19 +15,26 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/Confbase/cfg/push"
 )
 
-// pushCmd represents the push command
+var cfg push.Config
+
 var pushCmd = &cobra.Command{
 	Use:   "push",
 	Short: "Push changes to host server",
 	Long:  `Pushes changes to host server.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("push called")
+		switch len(args) {
+		case 1:
+			cfg.Remote = args[0]
+		case 2:
+			cfg.Remote = args[0]
+			cfg.Snapshot = args[1]
+		}
+		push.Push(cfg)
 	},
 }
 

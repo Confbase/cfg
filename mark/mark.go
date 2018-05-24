@@ -5,56 +5,84 @@ import (
 	"os"
 
 	"github.com/Confbase/cfg/dotcfg"
+	"github.com/Confbase/cfg/tag"
+	"github.com/Confbase/cfg/track"
+	"github.com/Confbase/cfg/unmark"
 )
 
-func Mark(filePath, templ string, force bool) {
-	_, err := os.Stat(filePath)
-	if err != nil && os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", filePath)
+func Mark(cfg *Config) {
+	if cfg.UnMark {
+		unmark.Unmark(cfg.Targets)
+		os.Exit(0)
+	}
+	if cfg.Singleton {
+		for _, target := range cfg.Targets {
+			track.Track(target)
+		}
+		os.Exit(0)
+	}
+	if cfg.InstanceOf != "" {
+		for _, target := range cfg.Targets {
+			tag.Tag(target, cfg.InstanceOf)
+		}
+		os.Exit(0)
+	}
+	if cfg.Template == "" {
+		fmt.Fprintf(os.Stderr, "\"\" is not a valid template name\n")
 		os.Exit(1)
 	}
 
-	cfg := dotcfg.MustLoadCfg()
-
-	templObj := dotcfg.Template{
-		Name:     templ,
-		FilePath: filePath,
+	if len(cfg.Targets) > 1 {
+		fmt.Fprintf(os.Stderr, "any given template can only be associated to one file\n")
+		os.Exit(1)
 	}
+	target := cfg.Targets[0]
+	_, err := os.Stat(target)
+	if err != nil && os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", target)
+		os.Exit(1)
+	}
+
+	cfgFile := dotcfg.MustLoadCfg()
 
 	containsTempl := false
 	templIndex := -1
-	for i, t := range cfg.Templates {
-		if t.Name == templ {
+	for i, t := range cfgFile.Templates {
+		if t.Name == cfg.Template {
 			containsTempl = true
 			templIndex = i
 			break
 		}
 	}
 
+	templObj := dotcfg.Template{
+		Name:     cfg.Template,
+		FilePath: target,
+	}
+
 	if !containsTempl {
-		cfg.Templates = append(
-			cfg.Templates,
+		cfgFile.Templates = append(
+			cfgFile.Templates,
 			templObj,
 		)
-		fmt.Printf("created new template '%v'\n", templ)
 	} else {
-		if !force {
-			fmt.Fprintf(os.Stderr, "template '%v' already exists; use --force to overwrite it\n", templ)
+		if !cfg.Force {
+			fmt.Fprintf(os.Stderr, "template '%v' already exists; ", cfg.Template)
+			fmt.Fprintf(os.Stderr, "use --force to overwrite it\n")
 			os.Exit(1)
 		}
 
-		oldTemplName := cfg.Templates[templIndex].Name
-		cfg.Templates[templIndex] = templObj
+		oldTemplName := cfgFile.Templates[templIndex].Name
+		cfgFile.Templates[templIndex] = templObj
 
-		if _, ok := cfg.Instances[oldTemplName]; ok {
-			delete(cfg.Instances, oldTemplName)
+		if _, ok := cfgFile.Instances[oldTemplName]; ok {
+			delete(cfgFile.Instances, oldTemplName)
 		}
-		fmt.Printf("overwrote template '%v'\n", templ)
 	}
 
-	cfg.MustSerialize(nil)
-	if !cfg.NoGit {
-		cfg.MustStage()
-		cfg.MustCommit()
+	cfgFile.MustSerialize(nil)
+	if !cfgFile.NoGit {
+		cfgFile.MustStage()
+		cfgFile.MustCommit()
 	}
 }

@@ -18,9 +18,11 @@ func Checkout(name string) {
 
 	snapExists := false
 	snaps := dotcfg.MustLoadSnaps()
+	var newSnap dotcfg.Snapshot
 	for _, s := range snaps.Snapshots {
 		if s.Name == name {
 			snapExists = true
+			newSnap = s
 			break
 		}
 	}
@@ -47,8 +49,11 @@ func Checkout(name string) {
 	}
 
 	gitCmd := exec.Command("git", "checkout", name)
-	if err := gitCmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to checkout snapshot\n%v\n", err)
+	if out, err := gitCmd.CombinedOutput(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", string(out))
 		os.Exit(1)
 	}
+
+	snaps.Current = newSnap
+	snaps.MustSerialize(nil)
 }

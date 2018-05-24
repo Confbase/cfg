@@ -68,7 +68,7 @@ func New(name string) {
 	}
 
 	snaps.Snapshots = append(snaps.Snapshots, dotcfg.Snapshot{Name: name})
-	snaps.Current = name
+	snaps.Current = dotcfg.Snapshot{Name: name}
 	if err := snaps.Serialize(nil); err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to serialize snapshots file\n")
 		fmt.Fprintf(os.Stderr, "%v\n", err)

@@ -3,6 +3,7 @@ package remote
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/Confbase/cfg/dotcfg"
@@ -22,6 +23,18 @@ func Add(name, url string) {
 		os.Exit(1)
 	}
 	key.Remotes[name] = url
+
+	cfgFile := dotcfg.MustLoadCfg()
+	if !cfgFile.NoGit {
+		out, err := exec.Command("git", "remote", "add", name, url).CombinedOutput()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "'git remote add %v %v' failed\n", name, url)
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
+			os.Exit(1)
+		}
+	}
+
 	key.MustSerialize(nil)
 }
 
@@ -32,6 +45,18 @@ func Remove(name string) {
 		os.Exit(1)
 	}
 	delete(key.Remotes, name)
+
+	cfgFile := dotcfg.MustLoadCfg()
+	if !cfgFile.NoGit {
+		out, err := exec.Command("git", "remote", "rm", name).CombinedOutput()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "'git remote rm %v' failed\n", name)
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
+			os.Exit(1)
+		}
+	}
+
 	key.MustSerialize(nil)
 }
 

@@ -63,8 +63,10 @@ func initGitRepo(baseDir string, tx *rollback.Tx) {
 	}
 
 	cmd := exec.Command("git", "init")
-	if err := cmd.Run(); err != nil {
+	if out, err := cmd.CombinedOutput(); err != nil {
+		fmt.Fprintf(os.Stderr, "'git init' failed\n")
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
 		tx.MustRollback()
 		os.Exit(1)
 	}

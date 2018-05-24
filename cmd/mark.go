@@ -20,23 +20,34 @@ import (
 	"github.com/Confbase/cfg/mark"
 )
 
-var markForce bool
+var markCfg mark.Config
 
 var markCmd = &cobra.Command{
 	Use:   "mark <file> <template-name>",
-	Short: "Mark a file as a template file",
-	Long: `Marks a file as a template file.
+	Short: "Mark a file as a template, instance, or singleton",
+	Long: `Mark a file as a template, instance, or singleton.
 
-New instances of template files can be created with "cfg new [template-file]".
+--template,    -t specifies the file is a template
+--instance-of, -i specifies the file is an instance of a template
+--singleton,   -s specifies the file is a singleton
+--unmark,      -u unmarks the file
 
-See related "cfg tag" command.`,
-	Args: cobra.ExactArgs(2),
+Using zero or more than one of the above four flags simultaneously is
+undefined.
+
+New instances of template files can be created with "cfg new [template-file]".`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		mark.Mark(args[0], args[1], markForce)
+		markCfg.Targets = args
+		mark.Mark(&markCfg)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(markCmd)
-	markCmd.Flags().BoolVarP(&markForce, "force", "", false, "overwrite template if it already exists")
+	markCmd.Flags().BoolVarP(&markCfg.Force, "force", "", false, "overwrite template if it already exists")
+	markCmd.Flags().BoolVarP(&markCfg.UnMark, "unmark", "u", false, "unmark file")
+	markCmd.Flags().StringVarP(&markCfg.InstanceOf, "instance-of", "i", "", "specifies template which target is instance of")
+	markCmd.Flags().StringVarP(&markCfg.Template, "template", "t", "", "specifies template name associated with target")
+	markCmd.Flags().BoolVarP(&markCfg.Singleton, "singleton", "s", false, "track target as singleton")
 }
