@@ -14,56 +14,96 @@ func isStdoutTty() bool {
 	return terminal.IsTerminal(int(os.Stdout.Fd()))
 }
 
-func Ls(noTty, noColors bool) {
+func Ls(lsCfg *Config) {
 	cfg := dotcfg.MustLoadCfg()
 
-	if isStdoutTty() && !noTty {
+	if isStdoutTty() && !lsCfg.NoTty {
 		d := decorate.New()
-		d.Enabled = !noColors
+		d.Enabled = !lsCfg.NoColors
 
 		snaps := dotcfg.MustLoadSnaps()
 		fmt.Printf("## %v\n", snaps.Current.Name)
 
-		LsTemplHuman(cfg, d)
-		LsInstancesHuman(cfg, d)
-		LsSingletonsHuman(cfg, d)
+		if !(lsCfg.DoLsTempls || lsCfg.DoLsInsts || lsCfg.DoLsSingles) {
+			LsTemplsHuman(cfg, d)
+			fmt.Println()
+			LsInstsHuman(cfg, d)
+			fmt.Println()
+			LsSinglesHuman(cfg, d)
+			return
+		}
+		if lsCfg.DoLsTempls {
+			LsTemplsHuman(cfg, d)
+			if lsCfg.DoLsInsts || lsCfg.DoLsSingles {
+				fmt.Println()
+			}
+		}
+		if lsCfg.DoLsInsts {
+			LsInstsHuman(cfg, d)
+			if lsCfg.DoLsSingles {
+				fmt.Println()
+			}
+		}
+		if lsCfg.DoLsSingles {
+			LsSinglesHuman(cfg, d)
+		}
 	} else {
-		LsTemplTty(cfg)
-		LsInstancesTty(cfg)
-		LsSingletonsTty(cfg)
+		if !(lsCfg.DoLsTempls || lsCfg.DoLsInsts || lsCfg.DoLsSingles) {
+			LsTemplsTty(cfg)
+			LsInstsTty(cfg)
+			LsSinglesTty(cfg)
+			return
+		}
+		if lsCfg.DoLsTempls {
+			LsTemplsTty(cfg)
+		}
+		if lsCfg.DoLsInsts {
+			LsInstsTty(cfg)
+		}
+		if lsCfg.DoLsSingles {
+			LsSinglesTty(cfg)
+		}
 	}
 }
 
-func LsTemplHuman(cfg *dotcfg.File, d *decorate.Decorator) {
+func LsTemplsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("templates")))
 	if len(cfg.Templates) > 0 {
-		for _, t := range cfg.Templates {
-			fmt.Printf(d.Green("%v")+": %v\n", t.Name, t.FilePath)
+		for i, t := range cfg.Templates {
+			end := "\n"
+			if i == len(cfg.Templates)-1 {
+				end = ""
+			}
+			fmt.Printf(d.Green("%v")+": %v%v", t.Name, t.FilePath, end)
 		}
 	}
 	fmt.Println()
 }
 
-func LsTemplTty(cfg *dotcfg.File) {
+func LsTemplsTty(cfg *dotcfg.File) {
 	fmt.Println("templates")
 	for _, t := range cfg.Templates {
 		fmt.Printf("%v\t%v\n", t.Name, t.FilePath)
 	}
 }
 
-func LsInstancesHuman(cfg *dotcfg.File, d *decorate.Decorator) {
+func LsInstsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("instances")))
 	if len(cfg.Templates) > 0 {
 		for templ, instances := range cfg.Instances {
-			for _, i := range instances {
-				fmt.Printf(d.Green("%v")+": %v\n", i.FilePath, templ)
+			for i, inst := range instances {
+				end := "\n"
+				if i == len(instances)-1 {
+					end = ""
+				}
+				fmt.Printf(d.Green("%v")+": %v%v", inst.FilePath, templ, end)
 			}
 		}
 	}
 	fmt.Println()
 }
 
-func LsInstancesTty(cfg *dotcfg.File) {
+func LsInstsTty(cfg *dotcfg.File) {
 	fmt.Println("instances")
 	for templ, instances := range cfg.Instances {
 		for _, i := range instances {
@@ -72,14 +112,14 @@ func LsInstancesTty(cfg *dotcfg.File) {
 	}
 }
 
-func LsSingletonsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
+func LsSinglesHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("singletons")))
 	for _, s := range cfg.Singletons {
 		fmt.Println(s.FilePath)
 	}
 }
 
-func LsSingletonsTty(cfg *dotcfg.File) {
+func LsSinglesTty(cfg *dotcfg.File) {
 	fmt.Println("singletons")
 	for _, s := range cfg.Singletons {
 		fmt.Println(s.FilePath)

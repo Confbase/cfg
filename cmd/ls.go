@@ -20,12 +20,13 @@ import (
 	"github.com/Confbase/cfg/ls"
 )
 
-var lsNoTty, lsNoColors bool
-
+var lsCfg ls.Config
 var lsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List the contents of the base",
 	Long: `Lists the contents of the base.
+
+Use -t, -i, -s to only list templates, instances, and singletons, respectively.
 
 If stdout is a tty, then the contents are listed in a human-readable format.
 
@@ -46,12 +47,15 @@ singletons
 ...
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		ls.Ls(lsNoTty, lsNoColors)
+		ls.Ls(&lsCfg)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(lsCmd)
-	lsCmd.Flags().BoolVarP(&lsNoTty, "no-tty", "", false, "do not print in human-readable format")
-	lsCmd.Flags().BoolVarP(&lsNoColors, "no-colors", "", false, "do not colorize text")
+	lsCmd.Flags().BoolVarP(&lsCfg.NoTty, "no-tty", "", false, "do not print in human-readable format")
+	lsCmd.Flags().BoolVarP(&lsCfg.NoColors, "no-colors", "", false, "do not colorize text")
+	lsCmd.Flags().BoolVarP(&lsCfg.DoLsTempls, "templates", "t", false, "only list templates")
+	lsCmd.Flags().BoolVarP(&lsCfg.DoLsInsts, "instances", "i", false, "only list instances")
+	lsCmd.Flags().BoolVarP(&lsCfg.DoLsSingles, "singletons", "s", false, "only list singletons")
 }
