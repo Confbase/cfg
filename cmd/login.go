@@ -38,7 +38,7 @@ See "cfg key" for per-base access key management.`,
 }
 
 func init() {
-	RootCmd.AddCommand(loginCmd)
+	rootCmd.AddCommand(loginCmd)
 	loginCmd.Flags().StringVarP(&loginUsername, "username", "u", "", "username")
 	loginCmd.Flags().StringVarP(&loginPassword, "password", "p", "", "password")
 }

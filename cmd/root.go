@@ -24,15 +24,14 @@ import (
 
 var cfgFile string
 
-// RootCmd represents the base command when called without any subcommands
-var RootCmd = &cobra.Command{
+var rootCmd = &cobra.Command{
 	Use:   "cfg",
 	Short: "The official Confbase CLI",
 	Long:  `cfg is the official CLI for Confbase (https://confbase.com)`,
 }
 
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
@@ -41,7 +40,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "global-config", "", "global config file (default is $HOME/.cfg.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "global-config", "", "global config file (default is $HOME/.cfg.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.

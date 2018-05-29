@@ -42,7 +42,7 @@ commands in this base.`,
 }
 
 func init() {
-	RootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().BoolVarP(&initOverwrite, "overwrite-gitignore", "", false, "overwrite .gitignore")
 	initCmd.Flags().BoolVarP(&initAppend, "append-to-gitignore", "", false, "append to .gitignore")
 	initCmd.Flags().BoolVarP(&initNoGit, "no-git", "", false, "do not create or control a git repository")

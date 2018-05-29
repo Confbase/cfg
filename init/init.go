@@ -5,12 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 
 	"github.com/Confbase/cfg/dotcfg"
 	"github.com/Confbase/cfg/rollback"
 	"github.com/Confbase/cfg/track"
-	"github.com/Confbase/cfg/util"
 )
 
 func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
@@ -20,8 +19,8 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 		os.Exit(1)
 	}
 
-	filePath := path.Join(cwd, dotcfg.FileName)
-	dirPath := path.Join(cwd, dotcfg.Dirname)
+	filePath := filepath.Join(cwd, dotcfg.FileName)
+	dirPath := filepath.Join(cwd, dotcfg.Dirname)
 
 	existsErrOut(filePath, "", nil)
 	existsErrOut(dirPath, "", nil)
@@ -36,7 +35,7 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 	cfg.NoGit = noGit
 	cfg.MustSerialize(tx)
 
-	keyfile := dotcfg.NewKey()
+	keyfile := dotcfg.NewKey(filepath.Base(cwd))
 	keyfile.MustSerialize(tx)
 
 	snaps := dotcfg.NewSnaps()
@@ -71,11 +70,11 @@ func initGitRepo(baseDir string, tx *rollback.Tx) {
 		os.Exit(1)
 	}
 
-	tx.DirsCreated = append(tx.DirsCreated, path.Join(baseDir, ".git"))
+	tx.DirsCreated = append(tx.DirsCreated, filepath.Join(baseDir, ".git"))
 }
 
 func mkGitIgnore(baseDir string, appendGitIgnore, overwriteGitIgnore bool, tx *rollback.Tx) {
-	filePath := path.Join(baseDir, ".gitignore")
+	filePath := filepath.Join(baseDir, ".gitignore")
 	ignoreStr := ".cfg/\n"
 
 	if appendGitIgnore {
@@ -100,15 +99,16 @@ func mkGitIgnore(baseDir string, appendGitIgnore, overwriteGitIgnore bool, tx *r
 	}
 
 	isCreated := false
-	isExist, err := util.Exists(filePath)
+	_, err := os.Stat(filePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", filePath)
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		tx.MustRollback()
-		os.Exit(1)
-	}
-	if !isExist {
-		isCreated = true
+		if os.IsNotExist(err) {
+			isCreated = true
+		} else {
+			fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", filePath)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			tx.MustRollback()
+			os.Exit(1)
+		}
 	}
 
 	if err := ioutil.WriteFile(filePath, []byte(ignoreStr), 0644); err != nil {

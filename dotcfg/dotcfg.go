@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/Confbase/cfg/rollback"
-	"github.com/Confbase/cfg/util"
 )
 
 const (
@@ -53,17 +52,16 @@ func NewCfg() *File {
 
 // everything in .cfg/ (including .cfg/key.json) is not tracked by git
 type Key struct {
-	Email      string            `json:"email"`
-	EntryPoint string            `json:"entryPoint"` // Confbase API base URL
-	Remotes    map[string]string `json:"remotes"`
+	Email    string            `json:"email"`
+	Remotes  map[string]string `json:"remotes"`
+	BaseName string            `json:"baseName"`
 }
 
-func NewKey() *Key {
+func NewKey(baseName string) *Key {
 	return &Key{
-		Email: viper.GetString("email"),
-
-		EntryPoint: viper.GetString("entryPoint"),
-		Remotes:    make(map[string]string),
+		Email:    viper.GetString("email"),
+		Remotes:  make(map[string]string),
+		BaseName: baseName,
 	}
 }
 
@@ -128,17 +126,18 @@ func (f *File) MustSerialize(tx *rollback.Tx) {
 	}
 
 	isCreated := false
-	isExist, err := util.Exists(filePath)
+	_, err = os.Stat(filePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", filePath)
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		if tx != nil {
-			tx.MustRollback()
+		if os.IsNotExist(err) {
+			isCreated = true
+		} else {
+			fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", filePath)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			if tx != nil {
+				tx.MustRollback()
+			}
+			os.Exit(1)
 		}
-		os.Exit(1)
-	}
-	if !isExist {
-		isCreated = true
 	}
 
 	if err := ioutil.WriteFile(filePath, cfgBytes, 0644); err != nil {
@@ -220,17 +219,18 @@ func (k *Key) MustSerialize(tx *rollback.Tx) {
 	keyPath := path.Join(dirPath, KeyfileName)
 
 	isCreated := false
-	isExist, err := util.Exists(keyPath)
+	_, err = os.Stat(keyPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", keyPath)
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		if tx != nil {
-			tx.MustRollback()
+		if os.IsNotExist(err) {
+			isCreated = true
+		} else {
+			fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", keyPath)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			if tx != nil {
+				tx.MustRollback()
+			}
+			os.Exit(1)
 		}
-		os.Exit(1)
-	}
-	if !isExist {
-		isCreated = true
 	}
 
 	if err := ioutil.WriteFile(keyPath, keyBytes, 0644); err != nil {
@@ -335,21 +335,22 @@ func (s *Snaps) Serialize(tx *rollback.Tx) error {
 	snapsPath := path.Join(dirPath, SnapsFileName)
 
 	isCreated := false
-	isExist, err := util.Exists(snapsPath)
+	_, err = os.Stat(snapsPath)
 	if err != nil {
-		composedErr := fmt.Errorf("error: failed to stat %v\n", snapsPath)
-		composedErr = fmt.Errorf("%v%v\n", composedErr, err)
-		var txErr error
-		if tx != nil {
-			txErr = tx.Rollback()
+		if os.IsNotExist(err) {
+			isCreated = true
+		} else {
+			composedErr := fmt.Errorf("error: failed to stat %v\n", snapsPath)
+			composedErr = fmt.Errorf("%v%v\n", composedErr, err)
+			var txErr error
+			if tx != nil {
+				txErr = tx.Rollback()
+			}
+			if txErr != nil {
+				composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
+			}
+			return composedErr
 		}
-		if txErr != nil {
-			composedErr = fmt.Errorf("%v%v\n", composedErr, txErr)
-		}
-		return composedErr
-	}
-	if !isExist {
-		isCreated = true
 	}
 
 	if err := ioutil.WriteFile(snapsPath, snapsBytes, 0644); err != nil {

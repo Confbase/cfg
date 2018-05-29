@@ -49,7 +49,7 @@ Otherwise, the base will be cloned into ./<base name>.`,
 }
 
 func init() {
-	RootCmd.AddCommand(cloneCmd)
+	rootCmd.AddCommand(cloneCmd)
 	cloneCmd.Flags().BoolVarP(&cloneCfg.NoGit, "no-git", "", false, "do not use git in cloned base")
 	cloneCmd.Flags().StringVarP(&cloneCfg.DefaultSnap, "default-snap", "s", "master", "specifies snapshot to checkout first")
 }

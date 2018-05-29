@@ -15,29 +15,36 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/push"
+	"github.com/Confbase/cfg/config"
 )
 
-var cfg push.Config
+var configCmd = &cobra.Command{
+	Use:   "config [<key> <value>]",
+	Short: "Configure cfg variables per base",
+	Long: `Configures cfg variables per base.
 
-var pushCmd = &cobra.Command{
-	Use:   "push",
-	Short: "Push changes to host server",
-	Long:  `Pushes changes to host server.`,
+Example---set email address for this base:
+
+    $ cfg config email thomas@fr.tld
+
+Example---set base name to "myproject":
+
+    $ cfg config base myproject`,
+	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		switch len(args) {
-		case 1:
-			cfg.Remote = args[0]
-		case 2:
-			cfg.Remote = args[0]
-			cfg.Snapshot = args[1]
+		if len(args)%2 != 0 {
+			fmt.Fprintf(os.Stderr, "error: 'cfg config' expects key-value pairs\n")
+			os.Exit(1)
 		}
-		push.Push(cfg)
+		config.Config(args)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(pushCmd)
+	rootCmd.AddCommand(configCmd)
 }

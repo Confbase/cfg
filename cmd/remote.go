@@ -27,5 +27,5 @@ can act as a cfg server.`,
 }
 
 func init() {
-	RootCmd.AddCommand(remoteCmd)
+	rootCmd.AddCommand(remoteCmd)
 }

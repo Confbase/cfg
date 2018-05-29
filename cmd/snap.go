@@ -25,5 +25,5 @@ var snapCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(snapCmd)
+	rootCmd.AddCommand(snapCmd)
 }

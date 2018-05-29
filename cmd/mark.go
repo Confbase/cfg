@@ -44,7 +44,7 @@ New instances of template files can be created with "cfg new [template-file]".`,
 }
 
 func init() {
-	RootCmd.AddCommand(markCmd)
+	rootCmd.AddCommand(markCmd)
 	markCmd.Flags().BoolVarP(&markCfg.Force, "force", "", false, "overwrite template if it already exists")
 	markCmd.Flags().BoolVarP(&markCfg.UnMark, "unmark", "u", false, "unmark file")
 	markCmd.Flags().StringVarP(&markCfg.InstanceOf, "instance-of", "i", "", "specifies template which target is instance of")

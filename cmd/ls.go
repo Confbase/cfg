@@ -52,7 +52,7 @@ singletons
 }
 
 func init() {
-	RootCmd.AddCommand(lsCmd)
+	rootCmd.AddCommand(lsCmd)
 	lsCmd.Flags().BoolVarP(&lsCfg.NoTty, "no-tty", "", false, "do not print in human-readable format")
 	lsCmd.Flags().BoolVarP(&lsCfg.NoColors, "no-colors", "", false, "do not colorize text")
 	lsCmd.Flags().BoolVarP(&lsCfg.DoLsTempls, "templates", "t", false, "only list templates")

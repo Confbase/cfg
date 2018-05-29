@@ -83,6 +83,7 @@ func Push(cfg Config) {
 		}
 	}
 
+	fmt.Println("building snapshot...")
 	r, w := io.Pipe()
 	go func() {
 		for _, filePath := range files {
@@ -97,8 +98,11 @@ func Push(cfg Config) {
 		}
 	}()
 
-	if err := send.SendSnap(remoteValue, r, "mybase", snapName); err != nil {
+	fmt.Println("pushing snapshot...")
+	// TODO: some nice ncurses progress thing
+	if err := send.SendSnap(remoteValue, r, keyFile.BaseName, snapName, true); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
+	fmt.Printf("successfully pushed '%v/%v' to '%v'\n", keyFile.BaseName, snapName, remote)
 }
