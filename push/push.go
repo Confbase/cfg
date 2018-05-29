@@ -16,6 +16,13 @@ func Push(cfg Config) {
 	keyFile := dotcfg.MustLoadKey()
 	snapsFile := dotcfg.MustLoadSnaps()
 
+	if len(keyFile.Remotes) == 0 {
+		fmt.Fprintf(os.Stderr, "error: there are no remotes\n")
+		fmt.Fprintf(os.Stderr, "a remote can be added with ")
+		fmt.Fprintf(os.Stderr, "'cfg remote add <remote-name> <remote-url>'\n")
+		os.Exit(1)
+	}
+
 	remote := ""
 	if cfg.Remote == "" {
 		remote = "origin"
