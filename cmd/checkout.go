@@ -24,17 +24,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// checkoutCmd represents the checkout command
+var doCheckoutB bool
 var checkoutCmd = &cobra.Command{
 	Use:   "checkout",
 	Short: "alias for 'cfg snap checkout'",
 	Long:  `Alias for 'cfg snap checkout'. See 'cfg snap checkout --help' for more info.`,
-	Run: func(cobraCmd *cobra.Command, _ []string) {
-		args := make([]string, 2)
-		args[0] = "snap"
-		args[1] = "checkout"
-		args = append(args, os.Args[2:]...)
-		cmd := exec.Command("cfg", args...)
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cobraCmd *cobra.Command, args []string) {
+		cmdArgs := make([]string, 2)
+		cmdArgs[0] = "snap"
+		if doCheckoutB {
+			cmdArgs[1] = "new"
+		} else {
+			cmdArgs[1] = "checkout"
+		}
+		cmdArgs = append(cmdArgs, args...)
+		cmd := exec.Command("cfg", cmdArgs...)
 
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -80,4 +85,5 @@ var checkoutCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(checkoutCmd)
+	checkoutCmd.Flags().BoolVarP(&doCheckoutB, "create-snap", "b", false, "alias for 'cfg snap new'")
 }
