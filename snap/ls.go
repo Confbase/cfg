@@ -16,8 +16,12 @@ func Ls(lineMode bool) {
 	} else {
 		snapNames := make([]string, len(snaps.Snapshots))
 		for i, s := range snaps.Snapshots {
-			snapNames[i] = s.Name
+			if s.Name == snaps.Current.Name {
+				snapNames[i] = fmt.Sprintf("* %v", s.Name)
+			} else {
+				snapNames[i] = s.Name
+			}
 		}
-		fmt.Println(strings.Join(snapNames, " "))
+		fmt.Println(strings.Join(snapNames, "\n"))
 	}
 }
