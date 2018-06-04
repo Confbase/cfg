@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/Confbase/cfg/cmdrunner"
 	"github.com/Confbase/cfg/rollback"
@@ -125,6 +126,12 @@ func (cfg *File) MustStage() {
 	for _, s := range cfg.Singletons {
 		mustStage(s.FilePath)
 	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
+		os.Exit(1)
+	}
+	mustStage(filepath.Join(cwd, SchemasDirName))
 	cfg.MustStageSelf()
 }
 
@@ -140,4 +147,63 @@ func (cfg *File) MustStageSelf() {
 
 func (cfg *File) MustCommitSelf() {
 	mustCommit("add .cfg.json")
+}
+
+type fileInfoTup struct {
+	baseDir string
+	fInfo   os.FileInfo
+}
+
+func (cfg *File) GetUntrackedFiles() ([]string, error) {
+	trackedFiles := make(map[string]bool)
+	for _, t := range cfg.Templates {
+		trackedFiles[t.FilePath] = true
+	}
+	for _, i := range cfg.Instances {
+		trackedFiles[i.FilePath] = true
+	}
+	for _, s := range cfg.Singletons {
+		trackedFiles[s.FilePath] = true
+	}
+
+	// TODO: find cfg base dir
+	// there are lots of other places in the code like this
+	// which aren't marked with TODO comments
+	baseDir := "."
+	wdFileInfo, err := os.Stat(baseDir)
+	if err != nil {
+		return nil, err
+	}
+
+	untracked := make([]string, 0)
+	stack := make([]fileInfoTup, 1)
+	stack[0] = fileInfoTup{baseDir, wdFileInfo}
+	for len(stack) > 0 {
+		var s fileInfoTup
+		s, stack = stack[len(stack)-1], stack[:len(stack)-1]
+		filePath := filepath.Join(s.baseDir, s.fInfo.Name())
+
+		// TODO: clean up
+		// this could have bugs based on working directory
+		// and relative paths
+		if strings.HasPrefix(filePath, ".git") {
+			continue
+		}
+
+		if s.fInfo.IsDir() {
+			fs, err := ioutil.ReadDir(filePath)
+			if err != nil {
+				return nil, err
+			}
+			for _, childF := range fs {
+				stack = append(stack, fileInfoTup{filePath, childF})
+			}
+		} else {
+			_, isTracked := trackedFiles[filePath]
+			if !isTracked {
+				untracked = append(untracked, filePath)
+			}
+		}
+	}
+	return untracked, nil
 }

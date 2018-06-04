@@ -58,4 +58,5 @@ func init() {
 	lsCmd.Flags().BoolVarP(&lsCfg.DoLsTempls, "templates", "t", false, "only list templates")
 	lsCmd.Flags().BoolVarP(&lsCfg.DoLsInsts, "instances", "i", false, "only list instances")
 	lsCmd.Flags().BoolVarP(&lsCfg.DoLsSingles, "singletons", "s", false, "only list singletons")
+	lsCmd.Flags().BoolVarP(&lsCfg.DoLsUntracked, "untracked", "u", false, "only list untracked")
 }

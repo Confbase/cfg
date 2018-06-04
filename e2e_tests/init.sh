@@ -8,7 +8,7 @@ init_minimal_no_git() {
     expect="Initialized empty base in $(pwd)"
 
     contents=`ls -a | xargs`
-    expect_contents='. .. .cfg .cfg.json .gitignore'
+    expect_contents='. .. .cfg .cfg.json .cfg_schemas .gitignore'
     if [ ! "$contents" = "$expect_contents" ]; then
         printf 'FAIL. expected cfg_tests/ to have contents:\n%s\ngot:\n%s\n' "$expect_contents" "$contents"
         exit 1

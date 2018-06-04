@@ -25,7 +25,7 @@ func Ls(lsCfg *Config) {
 		snaps := dotcfg.MustLoadSnaps()
 		fmt.Printf("## %v\n", snaps.Current.Name)
 
-		if !(lsCfg.DoLsTempls || lsCfg.DoLsInsts || lsCfg.DoLsSingles) {
+		if !(lsCfg.DoLsTempls || lsCfg.DoLsInsts || lsCfg.DoLsSingles || lsCfg.DoLsUntracked) {
 			LsTemplsHuman(cfg, d)
 			fmt.Println()
 			LsInstsHuman(cfg, d)
@@ -35,21 +35,27 @@ func Ls(lsCfg *Config) {
 		}
 		if lsCfg.DoLsTempls {
 			LsTemplsHuman(cfg, d)
-			if lsCfg.DoLsInsts || lsCfg.DoLsSingles {
+			if lsCfg.DoLsInsts || lsCfg.DoLsSingles || lsCfg.DoLsUntracked {
 				fmt.Println()
 			}
 		}
 		if lsCfg.DoLsInsts {
 			LsInstsHuman(cfg, d)
-			if lsCfg.DoLsSingles {
+			if lsCfg.DoLsSingles || lsCfg.DoLsUntracked {
 				fmt.Println()
 			}
 		}
 		if lsCfg.DoLsSingles {
 			LsSinglesHuman(cfg, d)
+			if lsCfg.DoLsUntracked {
+				fmt.Println()
+			}
+		}
+		if lsCfg.DoLsUntracked {
+			LsUntrackedHuman(cfg, d)
 		}
 	} else {
-		if !(lsCfg.DoLsTempls || lsCfg.DoLsInsts || lsCfg.DoLsSingles) {
+		if !(lsCfg.DoLsTempls || lsCfg.DoLsInsts || lsCfg.DoLsSingles || lsCfg.DoLsUntracked) {
 			LsTemplsTty(cfg)
 			LsInstsTty(cfg)
 			LsSinglesTty(cfg)
@@ -63,6 +69,9 @@ func Ls(lsCfg *Config) {
 		}
 		if lsCfg.DoLsSingles {
 			LsSinglesTty(cfg)
+		}
+		if lsCfg.DoLsUntracked {
+			LsUntrackedTty(cfg)
 		}
 	}
 }
@@ -70,15 +79,10 @@ func Ls(lsCfg *Config) {
 func LsTemplsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("templates")))
 	if len(cfg.Templates) > 0 {
-		for i, t := range cfg.Templates {
-			end := "\n"
-			if i == len(cfg.Templates)-1 {
-				end = ""
-			}
-			fmt.Printf(d.Green("%v")+": %v%v", t.Name, t.FilePath, end)
+		for _, t := range cfg.Templates {
+			fmt.Printf(d.Green("%v")+": %v\n", t.Name, t.FilePath)
 		}
 	}
-	fmt.Println()
 }
 
 func LsTemplsTty(cfg *dotcfg.File) {
@@ -91,16 +95,11 @@ func LsTemplsTty(cfg *dotcfg.File) {
 func LsInstsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("instances")))
 	if len(cfg.Templates) > 0 {
-		for i, inst := range cfg.Instances {
-			end := "\n"
-			if i == len(cfg.Instances)-1 {
-				end = ""
-			}
+		for _, inst := range cfg.Instances {
 			templsStr := strings.Join(inst.TemplNames, ", ")
-			fmt.Printf(d.Green("%v")+": %v%v", inst.FilePath, templsStr, end)
+			fmt.Printf(d.Green("%v")+": %v\n", inst.FilePath, templsStr)
 		}
 	}
-	fmt.Println()
 }
 
 func LsInstsTty(cfg *dotcfg.File) {
@@ -114,7 +113,7 @@ func LsInstsTty(cfg *dotcfg.File) {
 func LsSinglesHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("singletons")))
 	for _, s := range cfg.Singletons {
-		fmt.Println(s.FilePath)
+		fmt.Printf("%v\n", s.FilePath)
 	}
 }
 
@@ -122,5 +121,29 @@ func LsSinglesTty(cfg *dotcfg.File) {
 	fmt.Println("singletons")
 	for _, s := range cfg.Singletons {
 		fmt.Println(s.FilePath)
+	}
+}
+
+func LsUntrackedHuman(cfg *dotcfg.File, d *decorate.Decorator) {
+	untrackedFiles, err := cfg.GetUntrackedFiles()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println(d.LightBlue(d.Title("untracked files")))
+	for _, uf := range untrackedFiles {
+		fmt.Println(uf)
+	}
+}
+
+func LsUntrackedTty(cfg *dotcfg.File) {
+	untrackedFiles, err := cfg.GetUntrackedFiles()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("untracked files")
+	for _, uf := range untrackedFiles {
+		fmt.Println(uf)
 	}
 }

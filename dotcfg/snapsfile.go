@@ -23,7 +23,7 @@ func MustLoadSnaps() *Snaps {
 		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
 		os.Exit(1)
 	}
-	snapsPath := filepath.Join(cwd, Dirname, SnapsFileName)
+	snapsPath := filepath.Join(cwd, DirName, SnapsFileName)
 
 	f, err := os.OpenFile(snapsPath, os.O_RDONLY, 0644)
 	if err != nil {
@@ -60,7 +60,7 @@ func (s *Snaps) Serialize(tx *rollback.Tx) error {
 		return composedErr
 	}
 
-	dirPath := filepath.Join(cwd, Dirname)
+	dirPath := filepath.Join(cwd, DirName)
 
 	// mkdir if not exist
 	_, err = os.Stat(dirPath)

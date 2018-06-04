@@ -1,10 +1,11 @@
 package dotcfg
 
 const (
-	Dirname       = ".cfg"       // this dir resides in ./
-	FileName      = ".cfg.json"  // this file resides in ./
-	KeyfileName   = "key.json"   // this file resides in ./.cfg/
-	SnapsFileName = "snaps.json" // this file resides in ./.cfg/
+	DirName        = ".cfg"         // this dir resides in ./
+	FileName       = ".cfg.json"    // this file resides in ./
+	KeyfileName    = "key.json"     // this file resides in ./.cfg/
+	SnapsFileName  = "snaps.json"   // this file resides in ./.cfg/
+	SchemasDirName = ".cfg_schemas" // this file resides in ./
 )
 
 type JSONSchema struct {

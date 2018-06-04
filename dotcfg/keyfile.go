@@ -26,7 +26,7 @@ func MustLoadKey() *Key {
 		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
 		os.Exit(1)
 	}
-	keyPath := filepath.Join(cwd, Dirname, KeyfileName)
+	keyPath := filepath.Join(cwd, DirName, KeyfileName)
 
 	f, err := os.OpenFile(keyPath, os.O_RDONLY, 0644)
 	if err != nil {
@@ -52,7 +52,7 @@ func (k *Key) MustSerialize(tx *rollback.Tx) {
 		os.Exit(1)
 	}
 
-	dirPath := filepath.Join(cwd, Dirname)
+	dirPath := filepath.Join(cwd, DirName)
 
 	// mkdir if not exist
 	_, err = os.Stat(dirPath)

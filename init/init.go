@@ -20,7 +20,7 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 	}
 
 	filePath := filepath.Join(cwd, dotcfg.FileName)
-	dirPath := filepath.Join(cwd, dotcfg.Dirname)
+	dirPath := filepath.Join(cwd, dotcfg.DirName)
 
 	existsErrOut(filePath, "", nil)
 	existsErrOut(dirPath, "", nil)
@@ -41,10 +41,7 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 	snaps := dotcfg.NewSnaps()
 	snaps.MustSerialize(tx)
 
-	/*
-		schemas := dotcfg.NewSchemas()
-		schemas.MustSerialize(tx)
-	*/
+	mkSchemasDir(cwd, tx)
 
 	if !cfg.NoGit {
 		initGitRepo(cwd, tx)
@@ -54,6 +51,16 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 	}
 
 	fmt.Printf("Initialized empty base in %v\n", cwd)
+}
+
+func mkSchemasDir(baseDir string, tx *rollback.Tx) {
+	schemasDir := filepath.Join(baseDir, dotcfg.SchemasDirName)
+	if err := os.MkdirAll(schemasDir, os.ModePerm); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+
+	tx.DirsCreated = append(tx.DirsCreated, schemasDir)
 }
 
 func initGitRepo(baseDir string, tx *rollback.Tx) {
