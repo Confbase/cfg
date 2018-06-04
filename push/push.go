@@ -75,12 +75,10 @@ func Push(cfg Config) {
 			fileSet[t.FilePath] = true
 		}
 	}
-	for _, insts := range cfgFile.Instances {
-		for _, i := range insts {
-			if _, ok := fileSet[i.FilePath]; !ok {
-				files = append(files, i.FilePath)
-				fileSet[i.FilePath] = true
-			}
+	for _, inst := range cfgFile.Instances {
+		if _, ok := fileSet[inst.FilePath]; !ok {
+			files = append(files, inst.FilePath)
+			fileSet[inst.FilePath] = true
 		}
 	}
 	for _, s := range cfgFile.Singletons {

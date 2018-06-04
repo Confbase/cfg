@@ -26,8 +26,8 @@ var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "cfg",
-	Short: "The official Confbase CLI",
-	Long:  `cfg is the official CLI for Confbase (https://confbase.com)`,
+	Short: "A tool to manage configuration files",
+	Long:  `A tool to manage configuration files`,
 }
 
 func Execute() {

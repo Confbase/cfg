@@ -34,3 +34,29 @@ func RunOrFatal(cmd *exec.Cmd) {
 	err = cmd.Wait()
 	nilOrFatal(err)
 }
+
+func PipeFromCmd(cmd *exec.Cmd, wOut io.Writer, wErr io.Writer) error {
+	cmdStderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	cmdStdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	go func() {
+		if wOut != nil {
+			io.Copy(wOut, cmdStdout)
+		}
+	}()
+	go func() {
+		if wErr != nil {
+			io.Copy(wErr, cmdStderr)
+		}
+	}()
+	return cmd.Wait()
+}

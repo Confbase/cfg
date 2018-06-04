@@ -41,6 +41,11 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 	snaps := dotcfg.NewSnaps()
 	snaps.MustSerialize(tx)
 
+	/*
+		schemas := dotcfg.NewSchemas()
+		schemas.MustSerialize(tx)
+	*/
+
 	if !cfg.NoGit {
 		initGitRepo(cwd, tx)
 		cfg.MustStageSelf()

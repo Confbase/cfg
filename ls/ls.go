@@ -3,6 +3,7 @@ package ls
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
 
@@ -90,14 +91,13 @@ func LsTemplsTty(cfg *dotcfg.File) {
 func LsInstsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("instances")))
 	if len(cfg.Templates) > 0 {
-		for templ, instances := range cfg.Instances {
-			for i, inst := range instances {
-				end := "\n"
-				if i == len(instances)-1 {
-					end = ""
-				}
-				fmt.Printf(d.Green("%v")+": %v%v", inst.FilePath, templ, end)
+		for i, inst := range cfg.Instances {
+			end := "\n"
+			if i == len(cfg.Instances)-1 {
+				end = ""
 			}
+			templsStr := strings.Join(inst.TemplNames, ", ")
+			fmt.Printf(d.Green("%v")+": %v%v", inst.FilePath, templsStr, end)
 		}
 	}
 	fmt.Println()
@@ -105,10 +105,9 @@ func LsInstsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 
 func LsInstsTty(cfg *dotcfg.File) {
 	fmt.Println("instances")
-	for templ, instances := range cfg.Instances {
-		for _, i := range instances {
-			fmt.Printf("%v\t%v\n", templ, i.FilePath)
-		}
+	for _, inst := range cfg.Instances {
+		templsStr := strings.Join(inst.TemplNames, ",")
+		fmt.Printf("%v\t%v\n", inst.FilePath, templsStr)
 	}
 }
 

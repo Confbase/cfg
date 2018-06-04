@@ -28,7 +28,7 @@ func Mark(cfg *Config) {
 		os.Exit(0)
 	}
 	if cfg.Template == "" {
-		fmt.Fprintf(os.Stderr, "\"\" is not a valid template name\n")
+		fmt.Fprintf(os.Stderr, "error: one of the flags (-u|-i|-t) is required; see 'cfg mark -h' for help\n")
 		os.Exit(1)
 	}
 
@@ -75,8 +75,15 @@ func Mark(cfg *Config) {
 		oldTemplName := cfgFile.Templates[templIndex].Name
 		cfgFile.Templates[templIndex] = templObj
 
-		if _, ok := cfgFile.Instances[oldTemplName]; ok {
-			delete(cfgFile.Instances, oldTemplName)
+		for i, _ := range cfgFile.Instances {
+			tns := cfgFile.Instances[i].TemplNames
+			for j, t := range tns {
+				if t == oldTemplName {
+					tns = append(tns[:j], tns[j+1:]...)
+					break
+				}
+			}
+			cfgFile.Instances[i].TemplNames = tns
 		}
 	}
 

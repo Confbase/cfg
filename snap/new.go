@@ -41,7 +41,7 @@ func New(name string) {
 			for _, line := range strings.Split(sts, "\n") {
 				if len(line) >= 2 && line[0] == '?' && line[1] == '?' {
 					fmt.Fprintf(os.Stderr, "error: found untracked files; you must\n\n")
-					fmt.Fprintf(os.Stderr, "    1. track these files via 'cfg track', 'cfg tag', or 'cfg mark'\n")
+					fmt.Fprintf(os.Stderr, "    1. track these files via 'cfg mark'\n")
 					fmt.Fprintf(os.Stderr, "    or 2. add these files to the .gitignore\n")
 					fmt.Fprintf(os.Stderr, "    or 3. stash these files with 'git stash'\n")
 					fmt.Fprintf(os.Stderr, "    or 4. delete these files\n\n")
@@ -63,8 +63,6 @@ func New(name string) {
 		}
 
 		fmt.Printf("switched to new branch '%v'", name)
-
-		// TODO: push to Confbase git servers
 	}
 
 	snaps.Snapshots = append(snaps.Snapshots, dotcfg.Snapshot{Name: name})
@@ -78,15 +76,4 @@ func New(name string) {
 		}
 		os.Exit(1)
 	}
-	if err := snaps.Push(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to push snapshots file\n")
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-
-		if !cfg.NoGit {
-			mustUnCheckout()
-		}
-		os.Exit(1)
-	}
-
-	cfg.MustPushRaw()
 }

@@ -14,10 +14,10 @@ func Tag(filePath, templName string) {
 		os.Exit(1)
 	}
 
-	cfg := dotcfg.MustLoadCfg()
+	cfgFile := dotcfg.MustLoadCfg()
 
 	containsTempl := false
-	for _, t := range cfg.Templates {
+	for _, t := range cfgFile.Templates {
 		if t.Name == templName {
 			containsTempl = true
 			break
@@ -28,7 +28,7 @@ func Tag(filePath, templName string) {
 
 		templsContainPath := false
 		guessTemplName := ""
-		for _, t := range cfg.Templates {
+		for _, t := range cfgFile.Templates {
 			if t.FilePath == templName {
 				templsContainPath = true
 				guessTemplName = t.Name
@@ -49,28 +49,37 @@ func Tag(filePath, templName string) {
 		os.Exit(1)
 	}
 
-	if _, ok := cfg.Instances[templName]; !ok {
-		cfg.Instances[templName] = make([]dotcfg.Instance, 0)
+	isNewInst := true
+	for i, inst := range cfgFile.Instances {
+		if inst.FilePath == filePath {
+			for _, t := range cfgFile.Instances[i].TemplNames {
+				if t == templName {
+					// if already tagged as this templ,
+					// do nothing
+					return
+				}
+			}
+			cfgFile.Instances[i].TemplNames = append(inst.TemplNames, templName)
+			isNewInst = false
+			break
+		}
+	}
+	if isNewInst {
+		inst := dotcfg.NewInstance(filePath)
+		inst.TemplNames = append(inst.TemplNames, templName)
+		cfgFile.Instances = append(cfgFile.Instances, *inst)
 	}
 
-	containsInstance := false
-	for _, instance := range cfg.Instances[templName] {
-		if instance.FilePath == filePath {
-			containsInstance = true
+	for i, s := range cfgFile.Singletons {
+		if s.FilePath == filePath {
+			cfgFile.Singletons = append(cfgFile.Singletons[:i], cfgFile.Singletons[i+1:]...)
 			break
 		}
 	}
 
-	if containsInstance {
-		fmt.Fprintf(os.Stderr, "error: '%v' is already tagged as an instance of '%v'\n", filePath, templName)
-		os.Exit(1)
-	}
-
-	cfg.Instances[templName] = append(cfg.Instances[templName], dotcfg.Instance{FilePath: filePath})
-
-	cfg.MustSerialize(nil)
-	if !cfg.NoGit {
-		cfg.MustStage()
-		cfg.MustCommit()
+	cfgFile.MustSerialize(nil)
+	if !cfgFile.NoGit {
+		cfgFile.MustStage()
+		cfgFile.MustCommit()
 	}
 }
