@@ -101,7 +101,7 @@ func (f *File) MustSerialize(tx *rollback.Tx) {
 
 func mustStage(filePath string) {
 	cmd := exec.Command("git", "add", filePath)
-	if err := cmdrunner.PipeFromCmd(cmd, nil, os.Stderr); err != nil {
+	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to stage %v\n", filePath)
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
@@ -110,7 +110,7 @@ func mustStage(filePath string) {
 
 func mustCommit(msg string) {
 	cmd := exec.Command("git", "commit", "-m", msg)
-	if err := cmdrunner.PipeFromCmd(cmd, nil, os.Stderr); err != nil {
+	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
@@ -206,4 +206,38 @@ func (cfg *File) GetUntrackedFiles() ([]string, error) {
 		}
 	}
 	return untracked, nil
+}
+
+func (cfg *File) Infer(filePath string) error {
+	// TODO: filePath is assumed to be a relative path right now
+
+	// TODO: find cfg base dir
+	// there are lots of other places in the code like this
+	// which aren't marked with TODO comments
+
+	// TODO: should we leave this as `exec` or should we import code???
+	// leaving as `exec` means no infer features if shipping a single static binary
+	// (need to have the `schema` binary as well)
+	// on the other hand, it is a good way to increase `schema` usage
+	dest := filepath.Join(SchemasDirName, filePath)
+
+	parentDir := filepath.Dir(dest)
+	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
+		return err
+	}
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	cmd := exec.Command("schema", "infer", dest)
+	err = cmdrunner.PipeThrough(cmd, f, nil, nil)
+	if err != nil {
+		if err := os.Remove(dest); err != nil {
+			return err
+		}
+	}
+	return err
 }

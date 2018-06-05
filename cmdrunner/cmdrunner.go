@@ -35,7 +35,7 @@ func RunOrFatal(cmd *exec.Cmd) {
 	nilOrFatal(err)
 }
 
-func PipeFromCmd(cmd *exec.Cmd, wOut io.Writer, wErr io.Writer) error {
+func PipeFrom(cmd *exec.Cmd, wOut io.Writer, wErr io.Writer) error {
 	cmdStderr, err := cmd.StderrPipe()
 	if err != nil {
 		return err
@@ -48,6 +48,41 @@ func PipeFromCmd(cmd *exec.Cmd, wOut io.Writer, wErr io.Writer) error {
 		return err
 	}
 
+	go func() {
+		if wOut != nil {
+			io.Copy(wOut, cmdStdout)
+		}
+	}()
+	go func() {
+		if wErr != nil {
+			io.Copy(wErr, cmdStderr)
+		}
+	}()
+	return cmd.Wait()
+}
+
+func PipeThrough(cmd *exec.Cmd, rIn io.Reader, wOut io.Writer, wErr io.Writer) error {
+	cmdStdin, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	cmdStderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	cmdStdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	go func() {
+		if rIn != nil {
+			io.Copy(cmdStdin, rIn)
+		}
+		cmdStdin.Close()
+	}()
 	go func() {
 		if wOut != nil {
 			io.Copy(wOut, cmdStdout)

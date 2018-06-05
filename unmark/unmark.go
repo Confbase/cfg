@@ -21,7 +21,7 @@ func Unmark(targets []string) {
 
 		if !cfgFile.NoGit {
 			cmd := exec.Command("git", "ls-files", "--error-unmatch", target)
-			if err := cmdrunner.PipeFromCmd(cmd, nil, nil); err != nil {
+			if err := cmdrunner.PipeFrom(cmd, nil, nil); err != nil {
 				fmt.Fprintf(os.Stderr, "error: '%v' is not tracked by git\n", target)
 				fmt.Fprintf(os.Stderr, "%v\n", err)
 				os.Exit(1)

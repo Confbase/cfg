@@ -65,6 +65,7 @@ func Mark(cfg *Config) {
 			cfgFile.Templates,
 			templObj,
 		)
+		cfgFile.Infer(target)
 	} else {
 		if !cfg.Force {
 			fmt.Fprintf(os.Stderr, "template '%v' already exists; ", cfg.Template)

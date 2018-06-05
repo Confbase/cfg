@@ -68,8 +68,10 @@ func Tag(filePath, templName string) {
 		inst := dotcfg.NewInstance(filePath)
 		inst.TemplNames = append(inst.TemplNames, templName)
 		cfgFile.Instances = append(cfgFile.Instances, *inst)
+		cfgFile.Infer(filePath)
 	}
 
+	// if target is already a singleton, remove it from the singletons list
 	for i, s := range cfgFile.Singletons {
 		if s.FilePath == filePath {
 			cfgFile.Singletons = append(cfgFile.Singletons[:i], cfgFile.Singletons[i+1:]...)
