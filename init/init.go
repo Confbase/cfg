@@ -12,7 +12,7 @@ import (
 	"github.com/Confbase/cfg/track"
 )
 
-func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
+func Init(cfg *Config) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
@@ -27,13 +27,13 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 
 	tx := rollback.NewTx()
 
-	if !noModGitIgnore {
-		mkGitIgnore(cwd, appendGitIgnore, overwriteGitIgnore, tx)
+	if !cfg.NoModGitIgnore {
+		mkGitIgnore(cwd, cfg.AppendGitIgnore, cfg.OverwriteGitIgnore, tx)
 	}
 
-	cfg := dotcfg.NewCfg()
-	cfg.NoGit = noGit
-	cfg.MustSerialize(tx)
+	cfgFile := dotcfg.NewCfg()
+	cfgFile.NoGit = cfg.NoGit
+	cfgFile.MustSerialize(tx)
 
 	keyfile := dotcfg.NewKey(filepath.Base(cwd))
 	keyfile.MustSerialize(tx)
@@ -43,10 +43,10 @@ func Init(appendGitIgnore, overwriteGitIgnore, noGit, noModGitIgnore bool) {
 
 	mkSchemasDir(cwd, tx)
 
-	if !cfg.NoGit {
-		initGitRepo(cwd, tx)
-		cfg.MustStageSelf()
-		cfg.MustCommitSelf()
+	if !cfgFile.NoGit {
+		initGitRepo(cwd, cfg.Force, tx)
+		cfgFile.MustStageSelf()
+		cfgFile.MustCommitSelf()
 		track.Track(".gitignore")
 	}
 
@@ -63,14 +63,16 @@ func mkSchemasDir(baseDir string, tx *rollback.Tx) {
 	tx.DirsCreated = append(tx.DirsCreated, schemasDir)
 }
 
-func initGitRepo(baseDir string, tx *rollback.Tx) {
-	existsCmd := exec.Command("git", "rev-parse", "--git-dir")
-	if err := existsCmd.Run(); err == nil {
-		fmt.Fprintf(os.Stderr, "error: the current directory is inside a git repository\n")
-		fmt.Fprintf(os.Stderr, "if you wish to use cfg in conjuction with an existing git repository,\n")
-		fmt.Fprintf(os.Stderr, "consider running 'cfg init --no-git'\n")
-		tx.MustRollback()
-		os.Exit(1)
+func initGitRepo(baseDir string, force bool, tx *rollback.Tx) {
+	if !force {
+		existsCmd := exec.Command("git", "rev-parse", "--git-dir")
+		if err := existsCmd.Run(); err == nil {
+			fmt.Fprintf(os.Stderr, "error: the current directory is inside a git repository\n")
+			fmt.Fprintf(os.Stderr, "if you wish to use cfg in conjuction with an existing git repository,\n")
+			fmt.Fprintf(os.Stderr, "consider running 'cfg init --no-git'\n")
+			tx.MustRollback()
+			os.Exit(1)
+		}
 	}
 
 	cmd := exec.Command("git", "init")

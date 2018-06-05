@@ -34,12 +34,12 @@ If stdout is not a tty, or if the --no-tty flag is used, then the contents
 are listed in the following format:
 
 templates
-<template-name>,<template-file-path>
-<template-name>,<template-file-path>
+<template-name><tab character><template-file-path>
+<template-name><tab character><template-file-path>
 ...
 instances
-<template-name>,<instance-file-path>
-<template-name>,<instance-file-path>
+<instance-file-path><tab character><template-name>,<template-name>,...
+<instance-file-path><tab character><template-name>,<template-name>,...
 ....
 singletons
 <singleton-filepath>
