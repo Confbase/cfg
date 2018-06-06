@@ -27,7 +27,8 @@ type File struct {
 }
 
 type Singleton struct {
-	FilePath string `json:"filePath"`
+	FilePath string     `json:"filePath"`
+	Schema   JSONSchema `json:"schema"`
 }
 
 type Instance struct {

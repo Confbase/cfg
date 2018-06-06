@@ -36,6 +36,7 @@ func Unmark(targets []string) {
 				cfgFile.Templates = append(cfgFile.Templates[:i], cfgFile.Templates[i+1:]...)
 				rmdTempl = t
 				isTemplate = true
+				cfgFile.MustRmSchema(target, rmdTempl.Schema.FilePath != "")
 				break
 			}
 		}
@@ -50,6 +51,8 @@ func Unmark(targets []string) {
 				}
 				if len(inst.TemplNames) != 0 {
 					insts = append(insts, inst)
+				} else {
+					cfgFile.MustRmSchema(inst.FilePath, inst.Schema.FilePath != "")
 				}
 			}
 			cfgFile.Instances = insts
@@ -59,6 +62,7 @@ func Unmark(targets []string) {
 		for i, inst := range insts {
 			if inst.FilePath == target {
 				insts = append(insts[:i], insts[i+1:]...)
+				cfgFile.MustRmSchema(target, inst.Schema.FilePath != "")
 				break
 			}
 		}
@@ -68,6 +72,7 @@ func Unmark(targets []string) {
 		for i, s := range ss {
 			if s.FilePath == target {
 				ss = append(ss[:i], ss[i+1:]...)
+				cfgFile.MustRmSchema(target, s.Schema.FilePath != "")
 				break
 			}
 		}

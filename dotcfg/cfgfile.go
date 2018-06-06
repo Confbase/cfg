@@ -126,12 +126,22 @@ func (cfg *File) MustStage() {
 	for _, s := range cfg.Singletons {
 		mustStage(s.FilePath)
 	}
+	// TODO: this is broken when run from non-base dir
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
 		os.Exit(1)
 	}
-	mustStage(filepath.Join(cwd, SchemasDirName))
+	schemasDirPath := filepath.Join(cwd, SchemasDirName)
+	if _, err := os.Stat(schemasDirPath); err != nil && os.IsNotExist(err) {
+		// create .cfg_schemas if not exist
+		// it can be incidentally rm'd by git, if it becomes an empty directory
+		if err := os.MkdirAll(schemasDirPath, os.ModePerm); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+	mustStage(schemasDirPath)
 	cfg.MustStageSelf()
 }
 
@@ -192,6 +202,9 @@ func (cfg *File) GetUntrackedFiles() ([]string, error) {
 		if strings.HasPrefix(filePath, ".cfg/") || strings.HasPrefix(filePath, ".cfg\\") {
 			continue
 		}
+		if strings.HasPrefix(filePath, ".cfg_schemas/") || strings.HasPrefix(filePath, ".cfg_schemas\\") {
+			continue
+		}
 		if filePath == ".cfg.json" {
 			continue
 		}
@@ -246,4 +259,51 @@ func (cfg *File) Infer(filePath string) error {
 		}
 	}
 	return err
+}
+
+func (cfg *File) MustRmSchema(target string, onlyFromIndex bool) {
+	// TODO: target is assumed to be a relative path
+	// TODO: assumed to be run from base directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	schemaPath := filepath.Join(cwd, SchemasDirName, target)
+
+	if _, err := os.Stat(schemaPath); err != nil {
+		if os.IsNotExist(err) {
+			return
+		} else {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	if !cfg.NoGit {
+		if onlyFromIndex {
+			out, err := exec.Command("git", "rm", "--cached", schemaPath).CombinedOutput()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "'git rm --cached %v' failed\n", target)
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
+				os.Exit(1)
+			}
+		} else {
+			out, err := exec.Command("git", "rm", schemaPath).CombinedOutput()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "'git rm %v' failed\n", target)
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
+				os.Exit(1)
+			}
+		}
+	} else {
+		if !onlyFromIndex {
+			if err := os.Remove(schemaPath); err != nil {
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				os.Exit(1)
+			}
+		}
+	}
 }
