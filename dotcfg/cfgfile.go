@@ -189,6 +189,12 @@ func (cfg *File) GetUntrackedFiles() ([]string, error) {
 		if strings.HasPrefix(filePath, ".git") {
 			continue
 		}
+		if strings.HasPrefix(filePath, ".cfg/") || strings.HasPrefix(filePath, ".cfg\\") {
+			continue
+		}
+		if filePath == ".cfg.json" {
+			continue
+		}
 
 		if s.fInfo.IsDir() {
 			fs, err := ioutil.ReadDir(filePath)
