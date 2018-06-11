@@ -68,7 +68,10 @@ func Tag(filePath, templName string) {
 		inst := dotcfg.NewInstance(filePath)
 		inst.TemplNames = append(inst.TemplNames, templName)
 		cfgFile.Instances = append(cfgFile.Instances, *inst)
-		cfgFile.Infer(filePath)
+		if err := cfgFile.Infer(filePath); err == nil {
+			// if infer was successful
+			cfgFile.MustWarnDiffs(templName, filePath)
+		}
 	}
 
 	// if target is already a singleton, remove it from the singletons list

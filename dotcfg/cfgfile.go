@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/Confbase/cfg/cmdrunner"
 	"github.com/Confbase/cfg/rollback"
@@ -29,26 +30,32 @@ func NewCfg() *File {
 	}
 }
 
-func MustLoadCfg() *File {
+func LoadCfg() (*File, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
-		os.Exit(1)
+		return nil, fmt.Errorf("error: failed to get working directory")
 	}
 	filePath := filepath.Join(cwd, FileName)
 
 	f, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to open %v\n", filePath)
-		os.Exit(1)
+		return nil, fmt.Errorf("error: failed to open %v", filePath)
 	}
 
 	cfg := File{}
 	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to parse %v\n", filePath)
+		return nil, fmt.Errorf("error: failed to parse %v\n", filePath)
+	}
+	return &cfg, nil
+}
+
+func MustLoadCfg() *File {
+	cfgFile, err := LoadCfg()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
-	return &cfg
+	return cfgFile
 }
 
 func (f *File) MustSerialize(tx *rollback.Tx) {
@@ -111,7 +118,8 @@ func mustStage(filePath string) {
 func mustCommit(msg string) {
 	cmd := exec.Command("git", "commit", "-m", msg)
 	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		cmdString := fmt.Sprintf("%v \"%v\"", strings.Join(cmd.Args[:3], " "), msg)
+		fmt.Fprintf(os.Stderr, "error: '%v' failed with error:\n%v\n", cmdString, err)
 		os.Exit(1)
 	}
 }
@@ -245,13 +253,13 @@ func (cfg *File) Infer(filePath string) error {
 		return err
 	}
 
-	f, err := os.Open(filePath)
+	f, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	cmd := exec.Command("schema", "infer", dest)
+	cmd := exec.Command("schema", "infer", dest, "--make-required")
 	err = cmdrunner.PipeThrough(cmd, f, nil, nil)
 	if err != nil {
 		if err := os.Remove(dest); err != nil {
@@ -306,4 +314,52 @@ func (cfg *File) MustRmSchema(target string, onlyFromIndex bool) {
 			}
 		}
 	}
+}
+
+func (cfgFile *File) MustWarnDiffs(templName, instFilePath string) {
+	if err := cfgFile.WarnDiffs(templName, instFilePath); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (cfgFile *File) WarnDiffs(templName, instFilePath string) error {
+	var templSchemaPath string
+	for _, templ := range cfgFile.Templates {
+		if templ.Name == templName {
+			if templ.Schema.FilePath != "" {
+				templSchemaPath = templ.Schema.FilePath
+			} else {
+				// TODO: relative dir problems
+				templSchemaPath = filepath.Join(SchemasDirName, templ.FilePath)
+			}
+			break
+		}
+	}
+	if templSchemaPath == "" {
+		return fmt.Errorf("template '%v' does not exist", templName)
+	}
+	// TODO: relative dir problems
+	instSchemaPath := filepath.Join(SchemasDirName, instFilePath)
+
+	missFrom1 := fmt.Sprintf("'%v' templ, yet is in '%v'", templName, instFilePath)
+	missFrom2 := fmt.Sprintf("'%v', yet is in '%v' templ", instFilePath, templName)
+	cmd := exec.Command("schema", "diff", templSchemaPath, instSchemaPath, "-1", missFrom1, "-2", missFrom2)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		niceErr := fmt.Errorf("'%v' failed: %v", strings.Join(cmd.Args[:4], " "), err)
+		exiterr, ok := err.(*exec.ExitError)
+		if !ok {
+			return niceErr
+		}
+		status, ok := exiterr.Sys().(syscall.WaitStatus)
+		if !ok {
+			return niceErr
+		}
+		if status.ExitStatus() != 2 {
+			return niceErr
+		}
+		fmt.Fprintf(os.Stderr, "%v", string(out))
+	}
+	return nil
 }

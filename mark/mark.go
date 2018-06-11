@@ -65,29 +65,25 @@ func Mark(cfg *Config) {
 			cfgFile.Templates,
 			templObj,
 		)
-		cfgFile.Infer(target)
 	} else {
 		if !cfg.Force {
 			fmt.Fprintf(os.Stderr, "template '%v' already exists; ", cfg.Template)
 			fmt.Fprintf(os.Stderr, "use --force to overwrite it\n")
 			os.Exit(1)
 		}
-
-		oldTemplName := cfgFile.Templates[templIndex].Name
 		cfgFile.Templates[templIndex] = templObj
-
-		for i, _ := range cfgFile.Instances {
-			tns := cfgFile.Instances[i].TemplNames
-			for j, t := range tns {
-				if t == oldTemplName {
-					tns = append(tns[:j], tns[j+1:]...)
+	}
+	if err := cfgFile.Infer(target); err == nil {
+		// if infer was successful
+		for _, inst := range cfgFile.Instances {
+			for _, templName := range inst.TemplNames {
+				if templName == templObj.Name {
+					cfgFile.MustWarnDiffs(templObj.Name, inst.FilePath)
 					break
 				}
 			}
-			cfgFile.Instances[i].TemplNames = tns
 		}
 	}
-
 	cfgFile.MustSerialize(nil)
 	if !cfgFile.NoGit {
 		cfgFile.MustStage()
