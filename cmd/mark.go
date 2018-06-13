@@ -32,7 +32,7 @@ var markCmd = &cobra.Command{
 --singleton,   -s specifies the file is a singleton
 --unmark,      -u unmarks the file
 
-Using zero or more than one of the above four flags simultaneously is
+Using more than one of the above four flags simultaneously is
 undefined.
 
 New instances of template files can be created with "cfg new [template-file]".`,

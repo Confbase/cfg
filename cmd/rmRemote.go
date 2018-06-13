@@ -17,19 +17,22 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/rm"
+	"github.com/Confbase/cfg/remote"
 )
 
-var rmCmd = &cobra.Command{
-	Use:   "rm",
-	Short: "Remove a file and unmark it",
-	Long:  `Removes a file and unmarks it.`,
-	Args:  cobra.MinimumNArgs(1),
+// rmCmd represents the rm command
+var rmRemoteCmd = &cobra.Command{
+	Use:   "rm [name]",
+	Short: "remove the remote with the given name",
+	Long: `Removes the remote with the given name.
+
+Example: cfg remote rm origin`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rm.MustRm(args)
+		remote.Remove(args[0])
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(rmCmd)
+	remoteCmd.AddCommand(rmRemoteCmd)
 }

@@ -60,23 +60,33 @@ func MustLoadCfg() *File {
 }
 
 func (f *File) MustSerialize(tx *rollback.Tx) {
+	if err := f.Serialize(tx); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (f *File) Serialize(tx *rollback.Tx) error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
 		if tx != nil {
-			tx.MustRollback()
+			txErr := tx.Rollback()
+			if txErr != nil {
+				return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
+			}
 		}
-		os.Exit(1)
+		return err
 	}
 	filePath := filepath.Join(cwd, FileName)
 
 	cfgBytes, err := json.Marshal(f)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to marshal key\n")
-		if tx != nil {
-			tx.MustRollback()
+		err = fmt.Errorf("failed to marshal key\n%v", err)
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
 		}
-		os.Exit(1)
+		return err
 	}
 
 	isCreated := false
@@ -85,83 +95,124 @@ func (f *File) MustSerialize(tx *rollback.Tx) {
 		if os.IsNotExist(err) {
 			isCreated = true
 		} else {
-			fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", filePath)
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			if tx != nil {
-				tx.MustRollback()
+			err = fmt.Errorf("failed to stat %v\n%v", filePath, err)
+			txErr := tx.Rollback()
+			if txErr != nil {
+				return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
 			}
-			os.Exit(1)
+			return err
 		}
 	}
 
 	if err := ioutil.WriteFile(filePath, cfgBytes, 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to write %v\n", filePath)
-		if tx != nil {
-			tx.MustRollback()
+		err = fmt.Errorf("failed to write %v\n%v", filePath, err)
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
 		}
-		os.Exit(1)
+		return err
 	}
 
 	if isCreated {
 		tx.FilesCreated = append(tx.FilesCreated, filePath)
 	}
+	return nil
 }
 
 func mustStage(filePath string) {
-	cmd := exec.Command("git", "add", filePath)
-	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to stage %v\n", filePath)
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+	if err := stage(filePath); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func stage(filePath string) error {
+	cmd := exec.Command("git", "add", filePath)
+	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
+		return fmt.Errorf("failed to stage %v\n%v", filePath, err)
+	}
+	return nil
 }
 
 func mustCommit(msg string) {
-	cmd := exec.Command("git", "commit", "-m", msg)
-	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
-		cmdString := fmt.Sprintf("%v \"%v\"", strings.Join(cmd.Args[:3], " "), msg)
-		fmt.Fprintf(os.Stderr, "error: '%v' failed with error:\n%v\n", cmdString, err)
+	if err := commit(msg); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
+func commit(msg string) error {
+	cmd := exec.Command("git", "commit", "-m", msg)
+	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
+		cmdString := fmt.Sprintf("%v \"%v\"", strings.Join(cmd.Args[:3], " "), msg)
+		return fmt.Errorf("'%v' failed with error:\n%v\n", cmdString, err)
+	}
+	return nil
+}
+
 func (cfg *File) MustStage() {
+	if err := cfg.Stage(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (cfg *File) Stage() error {
 	for _, t := range cfg.Templates {
-		mustStage(t.FilePath)
+		if err := stage(t.FilePath); err != nil {
+			return err
+		}
 	}
 	for _, i := range cfg.Instances {
-		mustStage(i.FilePath)
+		if err := stage(i.FilePath); err != nil {
+			return err
+		}
 	}
 	for _, s := range cfg.Singletons {
-		mustStage(s.FilePath)
+		if err := stage(s.FilePath); err != nil {
+			return err
+		}
 	}
 	// TODO: this is broken when run from non-base dir
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
-		os.Exit(1)
+		return fmt.Errorf("failed to get working directory\n%v", err)
 	}
 	schemasDirPath := filepath.Join(cwd, SchemasDirName)
 	if _, err := os.Stat(schemasDirPath); err != nil && os.IsNotExist(err) {
 		// create .cfg_schemas if not exist
 		// it can be incidentally rm'd by git, if it becomes an empty directory
 		if err := os.MkdirAll(schemasDirPath, os.ModePerm); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+			return err
 		}
 	}
-	mustStage(schemasDirPath)
-	cfg.MustStageSelf()
+	if err := stage(schemasDirPath); err != nil {
+		return err
+	}
+	return cfg.StageSelf()
+}
+
+func (cfg *File) Commit() error {
+	// TODO: figure out changes and make appropriate message
+	return commit("add changes")
 }
 
 func (cfg *File) MustCommit() {
-	// TODO: figure out changes and make appropriate message
-	msg := "add changes"
-	mustCommit(msg)
+	if err := cfg.Commit(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (cfg *File) StageSelf() error {
+	return stage(".cfg.json")
 }
 
 func (cfg *File) MustStageSelf() {
-	mustStage(".cfg.json")
+	if err := cfg.StageSelf(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func (cfg *File) MustCommitSelf() {
@@ -274,50 +325,48 @@ func (cfg *File) Infer(filePath string) error {
 }
 
 func (cfg *File) MustRmSchema(target string, onlyFromIndex bool) {
+	if err := cfg.RmSchema(target, onlyFromIndex); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (cfg *File) RmSchema(target string, onlyFromIndex bool) error {
 	// TODO: target is assumed to be a relative path
 	// TODO: assumed to be run from base directory
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+		return err
 	}
 	schemaPath := filepath.Join(cwd, SchemasDirName, target)
 
 	if _, err := os.Stat(schemaPath); err != nil {
 		if os.IsNotExist(err) {
-			return
-		} else {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+			return nil
 		}
+		return err
 	}
 
 	if !cfg.NoGit {
 		if onlyFromIndex {
 			out, err := exec.Command("git", "rm", "--cached", schemaPath).CombinedOutput()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "'git rm --cached %v' failed\n", target)
-				fmt.Fprintf(os.Stderr, "error: %v\n", err)
-				fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
-				os.Exit(1)
+				return fmt.Errorf("'git rm --cached %v' failed\nerror: %v\noutput: %v", target, err, string(out))
 			}
 		} else {
 			out, err := exec.Command("git", "rm", schemaPath).CombinedOutput()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "'git rm %v' failed\n", target)
-				fmt.Fprintf(os.Stderr, "error: %v\n", err)
-				fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
-				os.Exit(1)
+				return fmt.Errorf("'git rm %v' failed\nerror: %v\noutput: %v", target, err, string(out))
 			}
 		}
 	} else {
 		if !onlyFromIndex {
 			if err := os.Remove(schemaPath); err != nil {
-				fmt.Fprintf(os.Stderr, "error: %v\n", err)
-				os.Exit(1)
+				return err
 			}
 		}
 	}
+	return nil
 }
 
 func (cfgFile *File) MustWarnDiffs(templName, instFilePath string) {

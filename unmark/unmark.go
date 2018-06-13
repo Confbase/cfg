@@ -9,22 +9,27 @@ import (
 	"github.com/Confbase/cfg/dotcfg"
 )
 
-func Unmark(targets []string) {
-	cfgFile := dotcfg.MustLoadCfg()
-	for _, target := range targets {
+func MustUnmark(targets []string) {
+	if err := Unmark(targets); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
 
+func Unmark(targets []string) error {
+	cfgFile, err := dotcfg.LoadCfg()
+	if err != nil {
+		return err
+	}
+	for _, target := range targets {
 		if _, err := os.Stat(target); err != nil {
-			fmt.Fprintf(os.Stderr, "error: failed to stat '%v'\n", target)
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to stat '%v'\n%v", target, err)
 		}
 
 		if !cfgFile.NoGit {
 			cmd := exec.Command("git", "ls-files", "--error-unmatch", target)
 			if err := cmdrunner.PipeFrom(cmd, nil, nil); err != nil {
-				fmt.Fprintf(os.Stderr, "error: '%v' is not tracked by git\n", target)
-				fmt.Fprintf(os.Stderr, "%v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("'%v' is not tracked by git\n%v", target, err)
 			}
 		}
 
@@ -36,7 +41,9 @@ func Unmark(targets []string) {
 				cfgFile.Templates = append(cfgFile.Templates[:i], cfgFile.Templates[i+1:]...)
 				rmdTempl = t
 				isTemplate = true
-				cfgFile.MustRmSchema(target, rmdTempl.Schema.FilePath != "")
+				if err := cfgFile.RmSchema(target, rmdTempl.Schema.FilePath != ""); err != nil {
+					return err
+				}
 				break
 			}
 		}
@@ -52,7 +59,9 @@ func Unmark(targets []string) {
 				if len(inst.TemplNames) != 0 {
 					insts = append(insts, inst)
 				} else {
-					cfgFile.MustRmSchema(inst.FilePath, inst.Schema.FilePath != "")
+					if err := cfgFile.RmSchema(inst.FilePath, inst.Schema.FilePath != ""); err != nil {
+						return err
+					}
 				}
 			}
 			cfgFile.Instances = insts
@@ -62,7 +71,9 @@ func Unmark(targets []string) {
 		for i, inst := range insts {
 			if inst.FilePath == target {
 				insts = append(insts[:i], insts[i+1:]...)
-				cfgFile.MustRmSchema(target, inst.Schema.FilePath != "")
+				if err := cfgFile.RmSchema(target, inst.Schema.FilePath != ""); err != nil {
+					return err
+				}
 				break
 			}
 		}
@@ -72,7 +83,9 @@ func Unmark(targets []string) {
 		for i, s := range ss {
 			if s.FilePath == target {
 				ss = append(ss[:i], ss[i+1:]...)
-				cfgFile.MustRmSchema(target, s.Schema.FilePath != "")
+				if err := cfgFile.RmSchema(target, s.Schema.FilePath != ""); err != nil {
+					return err
+				}
 				break
 			}
 		}
@@ -81,17 +94,21 @@ func Unmark(targets []string) {
 		if !cfgFile.NoGit {
 			out, err := exec.Command("git", "rm", "--cached", target).CombinedOutput()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "'git rm --cached %v' failed\n", target)
-				fmt.Fprintf(os.Stderr, "error: %v\n", err)
-				fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
-				os.Exit(1)
+				return fmt.Errorf("'git rm --cached %v' failed\nerror: %v\noutput: %v", target, err, string(out))
 			}
 		}
 	}
 
-	cfgFile.MustSerialize(nil)
-	if !cfgFile.NoGit {
-		cfgFile.MustStage()
-		cfgFile.MustCommit()
+	if err := cfgFile.Serialize(nil); err != nil {
+		return err
 	}
+	if !cfgFile.NoGit {
+		if err := cfgFile.Stage(); err != nil {
+			return err
+		}
+		if err := cfgFile.Commit(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
