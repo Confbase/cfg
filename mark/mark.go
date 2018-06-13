@@ -23,7 +23,7 @@ func Mark(cfg *Config) {
 	}
 	if cfg.InstanceOf != "" {
 		for _, target := range cfg.Targets {
-			tag.Tag(target, cfg.InstanceOf)
+			tag.MustTag(target, cfg.InstanceOf)
 		}
 		os.Exit(0)
 	}

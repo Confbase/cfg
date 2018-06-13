@@ -17,29 +17,46 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/snap"
+	"github.com/Confbase/cfg/new"
 )
 
+var newCfg new.Config
 var newCmd = &cobra.Command{
-	Use:   "new <snapshot-name>",
-	Short: "Associate a copy of the current files with a given name",
-	Long: `Creates a snapshot of the current files and associates it with a name.
+	Use:   "new <template-name> [target-path]",
+	Short: "Create a new instance of a template",
+	Long: `Creates a new instance of a template.
 
-These files are stored in an in-memory cache on Confbase servers. They can be
-accessed on any computer via
+If no targets are specified, the instance is written to stdout.
 
-$ cfg fetch myteam.confbase.com:mybase/myfile.json --snapshot my-snapshot
+If targets are specified, a new instance is initialized at each target path.
 
-or, if cfg is not on the machine, simply via HTTPS
+Target paths starting with the string "-" or "--" ARE IGNORED for the
+following reason:
 
-$ curl -u 'key:xxxxxxxxx' myteam.confbase.com/mybase/raw/my-snapshot/myfile.json
-`,
-	Args: cobra.ExactArgs(1),
+This command determines the location of the given template's schema and then
+runs 'schema init -s <schema-path> [target-path...]'. This means that it is
+possible to use any of the flags 'schema path' supports by prefixing them
+with the target "--". See the next two sections for examples.
+
+SPECIFYING FORMAT
+
+$ cfg new myTempl myInstance.toml -- --toml
+
+To see all supported formats, run 'schema init -h'.
+
+INITIALIZING WITH RANDOM VALUES
+
+$ cfg new myTempl myInstance.json -- --random`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		snap.New(args[0])
+		if len(args) > 1 {
+			newCfg.Targets = args[1:]
+		}
+		newCfg.TemplName = args[0]
+		new.MustNew(&newCfg)
 	},
 }
 
 func init() {
-	snapCmd.AddCommand(newCmd)
+	rootCmd.AddCommand(newCmd)
 }

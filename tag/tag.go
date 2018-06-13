@@ -7,14 +7,23 @@ import (
 	"github.com/Confbase/cfg/dotcfg"
 )
 
-func Tag(filePath, templName string) {
-	_, err := os.Stat(filePath)
-	if err != nil && os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", filePath)
+func MustTag(filePath, templName string) {
+	if err := Tag(filePath, templName); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
+}
 
-	cfgFile := dotcfg.MustLoadCfg()
+func Tag(filePath, templName string) error {
+	_, err := os.Stat(filePath)
+	if err != nil && os.IsNotExist(err) {
+		return err
+	}
+
+	cfgFile, err := dotcfg.LoadCfg()
+	if err != nil {
+		return err
+	}
 
 	containsTempl := false
 	for _, t := range cfgFile.Templates {
@@ -24,7 +33,7 @@ func Tag(filePath, templName string) {
 		}
 	}
 	if !containsTempl {
-		fmt.Fprintf(os.Stderr, "error: template '%v' does not exist\n", templName)
+		err := fmt.Errorf("template '%v' does not exist\n", templName)
 
 		templsContainPath := false
 		guessTemplName := ""
@@ -37,16 +46,14 @@ func Tag(filePath, templName string) {
 		}
 
 		if templsContainPath {
-			fmt.Fprintf(os.Stderr, "however, the file '%v' is ", templName)
-			fmt.Fprintf(os.Stderr, "associated with the name '%v'\n", guessTemplName)
-			fmt.Fprintf(os.Stderr, "did you mean to run ")
-			fmt.Fprintf(os.Stderr, "'cfg mark -i %v %v'?\n", guessTemplName, filePath)
-			os.Exit(1)
+			err = fmt.Errorf("%vhowever, the file '%v' is ", err, templName)
+			err = fmt.Errorf("%vassociated with the name '%v'\n", err, guessTemplName)
+			err = fmt.Errorf("%vdid you mean to run ", err)
+			return fmt.Errorf("%v'cfg mark -i %v %v'?", err, guessTemplName, filePath)
 		}
 
-		fmt.Fprintf(os.Stderr, "use 'cfg mark -t' to mark a file as a template ")
-		fmt.Fprintf(os.Stderr, "before marking an instance of it\n")
-		os.Exit(1)
+		err = fmt.Errorf("%vuse 'cfg mark -t' to mark a file as a template ", err)
+		return fmt.Errorf("%vbefore marking an instance of it", err)
 	}
 
 	isNewInst := true
@@ -56,7 +63,7 @@ func Tag(filePath, templName string) {
 				if t == templName {
 					// if already tagged as this templ,
 					// do nothing
-					return
+					return nil
 				}
 			}
 			cfgFile.Instances[i].TemplNames = append(inst.TemplNames, templName)
@@ -70,7 +77,9 @@ func Tag(filePath, templName string) {
 		cfgFile.Instances = append(cfgFile.Instances, *inst)
 		if err := cfgFile.Infer(filePath); err == nil {
 			// if infer was successful
-			cfgFile.MustWarnDiffs(templName, filePath)
+			if err := cfgFile.WarnDiffs(templName, filePath); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -82,9 +91,14 @@ func Tag(filePath, templName string) {
 		}
 	}
 
-	cfgFile.MustSerialize(nil)
-	if !cfgFile.NoGit {
-		cfgFile.MustStage()
-		cfgFile.MustCommit()
+	if err := cfgFile.Serialize(nil); err != nil {
+		return err
 	}
+	if !cfgFile.NoGit {
+		if err := cfgFile.Stage(); err != nil {
+			return err
+		}
+		return cfgFile.Commit()
+	}
+	return nil
 }
