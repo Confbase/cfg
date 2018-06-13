@@ -15,18 +15,17 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/Confbase/cfg/lint"
 )
 
-// lintCmd represents the lint command
 var lintCmd = &cobra.Command{
 	Use:   "lint",
 	Short: "Lint the contents of the base",
-	Long:  `Lints the contents of the base`,
+	Long:  `Lints the contents of the base.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("lint called")
+		lint.Lint()
 	},
 }
 

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/Confbase/cfg/cmdrunner"
 	"github.com/Confbase/cfg/rollback"
@@ -259,14 +260,17 @@ func (cfg *File) Infer(filePath string) error {
 	}
 	defer f.Close()
 
-	cmd := exec.Command("schema", "infer", dest, "--make-required")
+	tmpDest := fmt.Sprintf("%v.%v", dest, time.Now().UnixNano())
+
+	cmd := exec.Command("schema", "infer", tmpDest, "--make-required")
 	err = cmdrunner.PipeThrough(cmd, f, nil, nil)
 	if err != nil {
-		if err := os.Remove(dest); err != nil {
-			return err
+		if rmErr := os.Remove(tmpDest); rmErr != nil {
+			return fmt.Errorf("during this error:\n%v\nos.Remove failed:\n%v", err, rmErr)
 		}
+		return err
 	}
-	return err
+	return os.Rename(tmpDest, dest)
 }
 
 func (cfg *File) MustRmSchema(target string, onlyFromIndex bool) {
