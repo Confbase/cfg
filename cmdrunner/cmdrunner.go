@@ -35,14 +35,14 @@ func RunOrFatal(cmd *exec.Cmd) {
 	nilOrFatal(err)
 }
 
-func PipeFrom(cmd *exec.Cmd, wOut io.Writer, wErr io.Writer) error {
+func PipeTo(cmd *exec.Cmd, wOut io.Writer, wErr io.Writer) error {
 	cmdStderr, err := cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 	cmdStdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return err
+
 	}
 	if err := cmd.Start(); err != nil {
 		return err

@@ -128,7 +128,7 @@ func mustStage(filePath string) {
 
 func stage(filePath string) error {
 	cmd := exec.Command("git", "add", filePath)
-	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
+	if err := cmdrunner.PipeTo(cmd, nil, os.Stderr); err != nil {
 		return fmt.Errorf("failed to stage %v\n%v", filePath, err)
 	}
 	return nil
@@ -143,7 +143,7 @@ func mustCommit(msg string) {
 
 func commit(msg string) error {
 	cmd := exec.Command("git", "commit", "-m", msg)
-	if err := cmdrunner.PipeFrom(cmd, nil, os.Stderr); err != nil {
+	if err := cmdrunner.PipeTo(cmd, nil, os.Stderr); err != nil {
 		cmdString := fmt.Sprintf("%v \"%v\"", strings.Join(cmd.Args[:3], " "), msg)
 		return fmt.Errorf("'%v' failed with error:\n%v\n", cmdString, err)
 	}

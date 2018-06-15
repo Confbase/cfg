@@ -45,7 +45,7 @@ func New(templName string, targets []string) error {
 
 	args := append([]string{"init", "-s", templSchemaPath}, targets...)
 	cmd := exec.Command("schema", args...)
-	if err := cmdrunner.PipeFrom(cmd, os.Stdout, os.Stderr); err != nil {
+	if err := cmdrunner.PipeTo(cmd, os.Stdout, os.Stderr); err != nil {
 		return err
 	}
 
