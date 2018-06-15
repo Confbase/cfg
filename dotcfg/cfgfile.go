@@ -395,9 +395,20 @@ func (cfgFile *File) WarnDiffs(templName, instFilePath string) error {
 	// TODO: relative dir problems
 	instSchemaPath := filepath.Join(SchemasDirName, instFilePath)
 
-	missFrom1 := fmt.Sprintf("'%v' templ, yet is in '%v'", templName, instFilePath)
-	missFrom2 := fmt.Sprintf("'%v', yet is in '%v' templ", instFilePath, templName)
-	cmd := exec.Command("schema", "diff", templSchemaPath, instSchemaPath, "-1", missFrom1, "-2", missFrom2)
+	args := []string{
+		"diff",
+		templSchemaPath,
+		instSchemaPath,
+		"--miss-from-1",
+		fmt.Sprintf("'%v' templ, yet is in '%v'", templName, instFilePath),
+		"--miss-from-2",
+		fmt.Sprintf("'%v', yet is in '%v' templ", instFilePath, templName),
+		"--differ-1",
+		fmt.Sprintf("the '%v' templ", templName),
+		"--differ-2",
+		fmt.Sprintf("'%v'", instFilePath),
+	}
+	cmd := exec.Command("schema", args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		niceErr := fmt.Errorf("'%v' failed: %v", strings.Join(cmd.Args[:4], " "), err)
