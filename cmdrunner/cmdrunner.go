@@ -42,7 +42,7 @@ func PipeTo(cmd *exec.Cmd, wOut io.Writer, wErr io.Writer) error {
 	}
 	cmdStdout, err := cmd.StdoutPipe()
 	if err != nil {
-
+		return err
 	}
 	if err := cmd.Start(); err != nil {
 		return err

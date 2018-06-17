@@ -77,7 +77,7 @@ func Tag(filePath, templName string) error {
 		cfgFile.Instances = append(cfgFile.Instances, *inst)
 		if err := cfgFile.Infer(filePath); err == nil {
 			// if infer was successful
-			if err := cfgFile.WarnDiffs(templName, filePath); err != nil {
+			if err := cfgFile.WarnDiffs(templName, filePath, os.Stderr); err != nil {
 				return err
 			}
 		}

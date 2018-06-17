@@ -32,7 +32,7 @@ If no files are in the staging area, all tracked files staged before the commit.
 
 If files are already in the staging area, only those are included in the commit.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		commit.MustCommit(&commitCfg)
+		commit.MustCommitOrRevert(&commitCfg)
 	},
 }
 

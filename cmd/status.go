@@ -17,18 +17,18 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Confbase/cfg/lint"
+	"github.com/Confbase/cfg/status"
 )
 
-var lintCmd = &cobra.Command{
-	Use:   "lint",
-	Short: "Lint the contents of the base",
-	Long:  `Lints the contents of the base.`,
+var statusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Show the status of the current base",
+	Long:  `Shows the status of the current base.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		lint.MustLint()
+		status.MustShowStatus()
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(lintCmd)
+	rootCmd.AddCommand(statusCmd)
 }

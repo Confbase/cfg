@@ -3,6 +3,7 @@ package dotcfg
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -369,14 +370,14 @@ func (cfg *File) RmSchema(target string, onlyFromIndex bool) error {
 	return nil
 }
 
-func (cfgFile *File) MustWarnDiffs(templName, instFilePath string) {
-	if err := cfgFile.WarnDiffs(templName, instFilePath); err != nil {
+func (cfgFile *File) MustWarnDiffs(templName, instFilePath string, wErr io.Writer) {
+	if err := cfgFile.WarnDiffs(templName, instFilePath, wErr); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func (cfgFile *File) WarnDiffs(templName, instFilePath string) error {
+func (cfgFile *File) WarnDiffs(templName, instFilePath string, wErr io.Writer) error {
 	var templSchemaPath string
 	for _, templ := range cfgFile.Templates {
 		if templ.Name == templName {
@@ -423,7 +424,7 @@ func (cfgFile *File) WarnDiffs(templName, instFilePath string) error {
 		if status.ExitStatus() != 2 {
 			return niceErr
 		}
-		fmt.Fprintf(os.Stderr, "%v", string(out))
+		fmt.Fprintf(wErr, "%v", string(out))
 	}
 	return nil
 }

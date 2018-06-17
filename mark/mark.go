@@ -78,7 +78,7 @@ func Mark(cfg *Config) {
 		for _, inst := range cfgFile.Instances {
 			for _, templName := range inst.TemplNames {
 				if templName == templObj.Name {
-					cfgFile.MustWarnDiffs(templObj.Name, inst.FilePath)
+					cfgFile.MustWarnDiffs(templObj.Name, inst.FilePath, os.Stderr)
 					break
 				}
 			}

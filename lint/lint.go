@@ -1,9 +1,24 @@
 package lint
 
-import "github.com/Confbase/cfg/dotcfg"
+import (
+	"fmt"
+	"os"
 
-func Lint() {
-	cfgFile := dotcfg.MustLoadCfg()
+	"github.com/Confbase/cfg/dotcfg"
+)
+
+func MustLint() {
+	if err := Lint(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func Lint() error {
+	cfgFile, err := dotcfg.LoadCfg()
+	if err != nil {
+		return err
+	}
 	for _, templ := range cfgFile.Templates {
 		for _, inst := range cfgFile.Instances {
 			isInstOfTempl := false
@@ -14,8 +29,11 @@ func Lint() {
 				}
 			}
 			if isInstOfTempl {
-				cfgFile.MustWarnDiffs(templ.Name, inst.FilePath)
+				if err := cfgFile.WarnDiffs(templ.Name, inst.FilePath, os.Stderr); err != nil {
+					return err
+				}
 			}
 		}
 	}
+	return nil
 }
