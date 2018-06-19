@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 
 	"github.com/Confbase/cfg/cmdrunner"
 	"github.com/Confbase/cfg/dotcfg"
@@ -55,7 +56,9 @@ func Commit(cfg *Config) error {
 	}
 
 	for _, templ := range cfgFile.Templates {
-		gitAdd(templ.FilePath)
+		if err := gitAdd(templ.FilePath); err != nil {
+			return err
+		}
 		if templ.Schema.FilePath != "" {
 			if err := gitAdd(templ.Schema.FilePath); err != nil {
 				return err
@@ -63,6 +66,18 @@ func Commit(cfg *Config) error {
 		} else {
 			// TODO: add config variable + data structure to only do this to certain files
 			if err := cfgFile.Infer(templ.FilePath); err != nil {
+				exiterr, ok := err.(*exec.ExitError)
+				if !ok {
+					return err
+				}
+				// 'schema diff' exited with an exit code != 0
+				status, ok := exiterr.Sys().(syscall.WaitStatus)
+				if !ok {
+					return err
+				}
+				if status.ExitStatus() == 1 || status.ExitStatus() == 127 {
+					continue
+				}
 				return err
 			}
 			if err := gitAdd(filepath.Join(dotcfg.SchemasDirName, templ.FilePath)); err != nil {
@@ -72,7 +87,9 @@ func Commit(cfg *Config) error {
 	}
 
 	for _, inst := range cfgFile.Instances {
-		gitAdd(inst.FilePath)
+		if err := gitAdd(inst.FilePath); err != nil {
+			return err
+		}
 		if inst.Schema.FilePath != "" {
 			if err := gitAdd(inst.Schema.FilePath); err != nil {
 				return err
@@ -87,6 +104,18 @@ func Commit(cfg *Config) error {
 					if templ.Name == templName {
 						var errBuff bytes.Buffer
 						if cfgFile.WarnDiffs(templName, inst.FilePath, &errBuff); err != nil {
+							exiterr, ok := err.(*exec.ExitError)
+							if !ok {
+								return err
+							}
+							// 'schema diff' exited with an exit code != 0
+							status, ok := exiterr.Sys().(syscall.WaitStatus)
+							if !ok {
+								return err
+							}
+							if status.ExitStatus() == 1 || status.ExitStatus() == 127 {
+								continue
+							}
 							return err
 						}
 						if errBuff.Len() != 0 {
@@ -102,7 +131,9 @@ func Commit(cfg *Config) error {
 	}
 
 	for _, s := range cfgFile.Singletons {
-		gitAdd(s.FilePath)
+		if err := gitAdd(s.FilePath); err != nil {
+			return err
+		}
 		// should we add singleton schemas?
 		// seems the answer is yes, but what about singletons like .gitignore?
 		/*
