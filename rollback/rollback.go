@@ -25,7 +25,6 @@ func (tx *Tx) MustRollback() {
 }
 
 func (tx *Tx) Rollback() error {
-	fmt.Fprintf(os.Stderr, "rolling back changes\n")
 	for _, f := range tx.FilesCreated {
 		if err := os.Remove(f); err != nil {
 			txErr := fmt.Errorf("failed to remove %v\n", f)
@@ -43,4 +42,9 @@ func (tx *Tx) Rollback() error {
 		}
 	}
 	return nil
+}
+
+func MergeTxErr(err, txErr error) error {
+	err = fmt.Errorf("during this error:\n%v", err)
+	return fmt.Errorf("%v\ntransaction rollback failed:\n%v", err, txErr)
 }

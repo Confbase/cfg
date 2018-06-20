@@ -7,6 +7,7 @@ import (
 	"github.com/Confbase/cfg/dotcfg"
 )
 
+// TODO: MustTrack
 func Track(filePath string) {
 	_, err := os.Stat(filePath)
 	if err != nil && os.IsNotExist(err) {

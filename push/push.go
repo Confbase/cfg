@@ -45,7 +45,7 @@ func Push(cfg Config) {
 				fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
 				os.Exit(1)
 			}
-			fmt.Printf(string(out))
+			fmt.Print(string(out))
 			os.Exit(0)
 		}
 		out, err := exec.Command("git", "push", remote, cfg.Snapshot).CombinedOutput()
@@ -55,7 +55,7 @@ func Push(cfg Config) {
 			fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
 			os.Exit(1)
 		}
-		fmt.Printf(string(out))
+		fmt.Print(string(out))
 		os.Exit(0)
 	}
 

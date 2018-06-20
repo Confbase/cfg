@@ -43,13 +43,22 @@ func MustLoadKey() *Key {
 }
 
 func (k *Key) MustSerialize(tx *rollback.Tx) {
+	if err := k.Serialize(tx); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (k *Key) Serialize(tx *rollback.Tx) error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
+		err = fmt.Errorf("failed to get working directory\n%v", err)
 		if tx != nil {
-			tx.MustRollback()
+			if txErr := tx.Rollback(); txErr != nil {
+				err = rollback.MergeTxErr(err, txErr)
+			}
 		}
-		os.Exit(1)
+		return err
 	}
 
 	dirPath := filepath.Join(cwd, DirName)
@@ -58,29 +67,34 @@ func (k *Key) MustSerialize(tx *rollback.Tx) {
 	_, err = os.Stat(dirPath)
 	if err != nil && os.IsNotExist(err) {
 		if err := os.Mkdir(dirPath, 0755); err != nil {
-			fmt.Fprintf(os.Stderr, "error: failed to create directory %v\n", dirPath)
+			err = fmt.Errorf("failed to create directory %v\n%v", dirPath, err)
 			if tx != nil {
-				tx.MustRollback()
+				if txErr := tx.Rollback(); txErr != nil {
+					err = rollback.MergeTxErr(err, txErr)
+				}
 			}
-			os.Exit(1)
+			return err
 		}
 		tx.DirsCreated = append(tx.DirsCreated, dirPath)
 	} else if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", dirPath)
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		err = fmt.Errorf("failed to stat %v\n%v", dirPath, err)
 		if tx != nil {
-			tx.MustRollback()
+			if txErr := tx.Rollback(); txErr != nil {
+				err = rollback.MergeTxErr(err, txErr)
+			}
 		}
-		os.Exit(1)
+		return err
 	}
 
 	keyBytes, err := json.Marshal(k)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to marshal key\n")
+		err = fmt.Errorf("failed to marshal key\n%v", err)
 		if tx != nil {
-			tx.MustRollback()
+			if txErr := tx.Rollback(); txErr != nil {
+				err = rollback.MergeTxErr(err, txErr)
+			}
 		}
-		os.Exit(1)
+		return err
 	}
 
 	keyPath := filepath.Join(dirPath, KeyfileName)
@@ -91,24 +105,28 @@ func (k *Key) MustSerialize(tx *rollback.Tx) {
 		if os.IsNotExist(err) {
 			isCreated = true
 		} else {
-			fmt.Fprintf(os.Stderr, "error: failed to stat %v\n", keyPath)
-			fmt.Fprintf(os.Stderr, "%v\n", err)
+			err = fmt.Errorf("failed to stat %v\n%v", keyPath, err)
 			if tx != nil {
-				tx.MustRollback()
+				if txErr := tx.Rollback(); txErr != nil {
+					err = rollback.MergeTxErr(err, txErr)
+				}
 			}
-			os.Exit(1)
+			return err
 		}
 	}
 
 	if err := ioutil.WriteFile(keyPath, keyBytes, 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to write %v\n", keyPath)
+		err = fmt.Errorf("failed to write %v\n%v", keyPath, err)
 		if tx != nil {
-			tx.MustRollback()
+			if txErr := tx.Rollback(); txErr != nil {
+				err = rollback.MergeTxErr(err, txErr)
+			}
 		}
-		os.Exit(1)
+		return err
 	}
 
 	if isCreated {
 		tx.FilesCreated = append(tx.FilesCreated, keyPath)
 	}
+	return nil
 }

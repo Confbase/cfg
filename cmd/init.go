@@ -40,7 +40,7 @@ commands in this base.
 It is possible to force the creation of a git-backed base with
 'cfg init --force'.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		initpkg.Init(&initCfg)
+		initpkg.MustInit(&initCfg)
 	},
 }
 

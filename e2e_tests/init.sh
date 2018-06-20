@@ -21,9 +21,8 @@ init_minimal_inside_git() {
 
     expect_status='1'
     expect='error: the current directory is inside a git repository
-if you wish to use cfg in conjuction with an existing git repository,
-consider running '"'"'cfg init --no-git'"'"'
-rolling back changes'
+ if you wish to use cfg in conjuction with an existing git repository,
+ consider running '"'"'cfg init --no-git'"'"
 
     contents=`ls -a | xargs`
     if [ ! "$contents" = '. ..' ]; then

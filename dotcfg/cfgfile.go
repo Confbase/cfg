@@ -216,8 +216,8 @@ func (cfg *File) MustStageSelf() {
 	}
 }
 
-func (cfg *File) MustCommitSelf() {
-	mustCommit("add .cfg.json")
+func (cfg *File) CommitSelf() error {
+	return commit("add .cfg.json")
 }
 
 type fileInfoTup struct {

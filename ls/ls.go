@@ -80,7 +80,7 @@ func LsTemplsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("templates")))
 	if len(cfg.Templates) > 0 {
 		for _, t := range cfg.Templates {
-			fmt.Printf(d.Green("%v")+": %v\n", t.Name, t.FilePath)
+			fmt.Printf("%v: %v\n", d.Green(t.Name), t.FilePath)
 		}
 	}
 }
@@ -97,7 +97,7 @@ func LsInstsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	if len(cfg.Templates) > 0 {
 		for _, inst := range cfg.Instances {
 			templsStr := strings.Join(inst.TemplNames, ", ")
-			fmt.Printf(d.Green("%v")+": %v\n", inst.FilePath, templsStr)
+			fmt.Printf("%v: %v\n", d.Green(inst.FilePath), templsStr)
 		}
 	}
 }
