@@ -17,7 +17,7 @@ func MustLint() {
 }
 
 func Lint() error {
-	cfgFile, err := dotcfg.LoadCfg()
+	cfgFile, err := dotcfg.LoadCfg("")
 	if err != nil {
 		return err
 	}

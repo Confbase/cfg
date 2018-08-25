@@ -5,7 +5,7 @@ init_minimal_no_git() {
     status="$?"
 
     expect_status='0'
-    expect="Initialized empty base in $(pwd)"
+    expect="Initialized empty base at $(pwd)"
 
     contents=`ls -a | xargs`
     expect_contents='. .. .cfg .cfg.json .cfg_schemas .gitignore'

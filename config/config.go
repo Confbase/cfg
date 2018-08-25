@@ -23,5 +23,5 @@ func Config(args []string) {
 			os.Exit(1)
 		}
 	}
-	keyFile.MustSerialize(nil)
+	keyFile.MustSerialize("", nil)
 }

@@ -28,7 +28,7 @@ func New(name string) {
 		}
 	}
 
-	cfg := dotcfg.MustLoadCfg()
+	cfg := dotcfg.MustLoadCfg("")
 	if !cfg.NoGit {
 		stsCmd := exec.Command("git", "status", "-s")
 		stsBytes, stsErr := stsCmd.Output()
@@ -50,8 +50,8 @@ func New(name string) {
 				}
 			}
 			fmt.Printf("committing changes before creating new snapshot...")
-			cfg.MustStage()
-			cfg.MustCommit()
+			cfg.MustStage("")
+			cfg.MustCommit("")
 			fmt.Printf("OK\n")
 		}
 
@@ -67,7 +67,7 @@ func New(name string) {
 
 	snaps.Snapshots = append(snaps.Snapshots, dotcfg.Snapshot{Name: name})
 	snaps.Current = dotcfg.Snapshot{Name: name}
-	if err := snaps.Serialize(nil); err != nil {
+	if err := snaps.Serialize("", nil); err != nil {
 		fmt.Fprintf(os.Stderr, "error: failed to serialize snapshots file\n")
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 

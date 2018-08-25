@@ -17,7 +17,8 @@ func Mark(cfg *Config) {
 	}
 	if cfg.Singleton {
 		for _, target := range cfg.Targets {
-			track.Track(target)
+			// TODO: baseDir
+			track.Track("", target)
 		}
 		os.Exit(0)
 	}
@@ -43,7 +44,7 @@ func Mark(cfg *Config) {
 		os.Exit(1)
 	}
 
-	cfgFile := dotcfg.MustLoadCfg()
+	cfgFile := dotcfg.MustLoadCfg("")
 
 	containsTempl := false
 	templIndex := -1
@@ -84,9 +85,9 @@ func Mark(cfg *Config) {
 			}
 		}
 	}
-	cfgFile.MustSerialize(nil)
+	cfgFile.MustSerialize("", nil)
 	if !cfgFile.NoGit {
-		cfgFile.MustStage()
-		cfgFile.MustCommit()
+		cfgFile.MustStage("")
+		cfgFile.MustCommit("")
 	}
 }

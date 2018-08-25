@@ -24,7 +24,8 @@ func Add(name, url string) {
 	}
 	key.Remotes[name] = url
 
-	cfgFile := dotcfg.MustLoadCfg()
+	// TODO: baseDir; tip: grep for all instances of MustLoadCfg("")
+	cfgFile := dotcfg.MustLoadCfg("")
 	if !cfgFile.NoGit {
 		out, err := exec.Command("git", "remote", "add", name, url).CombinedOutput()
 		if err != nil {
@@ -35,7 +36,7 @@ func Add(name, url string) {
 		}
 	}
 
-	key.MustSerialize(nil)
+	key.MustSerialize("", nil)
 }
 
 func Remove(name string) {
@@ -46,7 +47,7 @@ func Remove(name string) {
 	}
 	delete(key.Remotes, name)
 
-	cfgFile := dotcfg.MustLoadCfg()
+	cfgFile := dotcfg.MustLoadCfg("")
 	if !cfgFile.NoGit {
 		out, err := exec.Command("git", "remote", "rm", name).CombinedOutput()
 		if err != nil {
@@ -57,7 +58,7 @@ func Remove(name string) {
 		}
 	}
 
-	key.MustSerialize(nil)
+	key.MustSerialize("", nil)
 }
 
 func Ls() {

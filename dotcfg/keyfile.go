@@ -3,7 +3,6 @@ package dotcfg
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -42,30 +41,18 @@ func MustLoadKey() *Key {
 	return &key
 }
 
-func (k *Key) MustSerialize(tx *rollback.Tx) {
-	if err := k.Serialize(tx); err != nil {
+func (k *Key) MustSerialize(baseDir string, tx *rollback.Tx) {
+	if err := k.Serialize(baseDir, tx); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func (k *Key) Serialize(tx *rollback.Tx) error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		err = fmt.Errorf("failed to get working directory\n%v", err)
-		if tx != nil {
-			if txErr := tx.Rollback(); txErr != nil {
-				err = rollback.MergeTxErr(err, txErr)
-			}
-		}
-		return err
-	}
-
-	dirPath := filepath.Join(cwd, DirName)
+func (k *Key) Serialize(baseDir string, tx *rollback.Tx) error {
+	dirPath := filepath.Join(baseDir, DirName)
 
 	// mkdir if not exist
-	_, err = os.Stat(dirPath)
-	if err != nil && os.IsNotExist(err) {
+	if _, err := os.Stat(dirPath); err != nil && os.IsNotExist(err) {
 		if err := os.Mkdir(dirPath, 0755); err != nil {
 			err = fmt.Errorf("failed to create directory %v\n%v", dirPath, err)
 			if tx != nil {
@@ -86,22 +73,10 @@ func (k *Key) Serialize(tx *rollback.Tx) error {
 		return err
 	}
 
-	keyBytes, err := json.Marshal(k)
-	if err != nil {
-		err = fmt.Errorf("failed to marshal key\n%v", err)
-		if tx != nil {
-			if txErr := tx.Rollback(); txErr != nil {
-				err = rollback.MergeTxErr(err, txErr)
-			}
-		}
-		return err
-	}
-
 	keyPath := filepath.Join(dirPath, KeyfileName)
 
 	isCreated := false
-	_, err = os.Stat(keyPath)
-	if err != nil {
+	if _, err := os.Stat(keyPath); err != nil {
 		if os.IsNotExist(err) {
 			isCreated = true
 		} else {
@@ -115,12 +90,34 @@ func (k *Key) Serialize(tx *rollback.Tx) error {
 		}
 	}
 
-	if err := ioutil.WriteFile(keyPath, keyBytes, 0644); err != nil {
+	f, err := os.Create(keyPath)
+	if err != nil {
+		err = fmt.Errorf("failed to create or open %v\n%v", keyPath, err)
+		if tx != nil {
+			if txErr := tx.Rollback(); txErr != nil {
+				err = rollback.MergeTxErr(err, txErr)
+			}
+		}
+		return err
+	}
+	defer f.Close()
+
+	if err := json.NewEncoder(f).Encode(k); err != nil {
 		err = fmt.Errorf("failed to write %v\n%v", keyPath, err)
 		if tx != nil {
 			if txErr := tx.Rollback(); txErr != nil {
 				err = rollback.MergeTxErr(err, txErr)
 			}
+		}
+		return err
+	}
+
+	// explicitly close, to verify the file has been written
+	if err := f.Close(); err != nil {
+		err = fmt.Errorf("failed to close file %v\n%v", keyPath, err)
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
 		}
 		return err
 	}

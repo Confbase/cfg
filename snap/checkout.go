@@ -10,7 +10,7 @@ import (
 )
 
 func Checkout(name string) {
-	cfg := dotcfg.MustLoadCfg()
+	cfg := dotcfg.MustLoadCfg("")
 	if cfg.NoGit {
 		fmt.Fprintf(os.Stderr, "error: checkout is not a valid command in a non-git base")
 		os.Exit(1)
@@ -55,5 +55,5 @@ func Checkout(name string) {
 	}
 
 	snaps.Current = newSnap
-	snaps.MustSerialize(nil)
+	snaps.MustSerialize("", nil)
 }

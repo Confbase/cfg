@@ -11,7 +11,7 @@ func TestInit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	testdir := filepath.Join(wd, "testdata")
+	testdir := filepath.Join(wd, "testdir")
 	if err := os.Mkdir(testdir, os.ModePerm); err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,10 @@ func TestInit(t *testing.T) {
 			NoModGitIgnore:     false,
 			Force:              true,
 		}
-		Init(&cfg)
+		if err := Init(&cfg); err != nil {
+			t.Fatal(err)
+		}
+
 	})
 
 	if err := os.Chdir(wd); err != nil {

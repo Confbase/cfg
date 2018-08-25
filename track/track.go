@@ -8,14 +8,18 @@ import (
 )
 
 // TODO: MustTrack
-func Track(filePath string) {
+
+// Track tracks the file located at the absolute or relative path `filePath`.
+// `baseDir` specifies the base directory of this base. It has no relation to
+// and does not modify `filePath`.
+func Track(baseDir, filePath string) {
 	_, err := os.Stat(filePath)
 	if err != nil && os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", filePath)
 		os.Exit(1)
 	}
 
-	cfg := dotcfg.MustLoadCfg()
+	cfg := dotcfg.MustLoadCfg(baseDir)
 
 	containsSingleton := false
 	for _, singleton := range cfg.Singletons {
@@ -32,9 +36,9 @@ func Track(filePath string) {
 
 	cfg.Singletons = append(cfg.Singletons, dotcfg.Singleton{FilePath: filePath})
 	cfg.Infer(filePath)
-	cfg.MustSerialize(nil)
+	cfg.MustSerialize(baseDir, nil)
 	if !cfg.NoGit {
-		cfg.MustStage()
-		cfg.MustCommit()
+		cfg.MustStage(baseDir)
+		cfg.MustCommit(baseDir)
 	}
 }

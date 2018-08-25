@@ -26,14 +26,14 @@ func Remove(targets []string) {
 		}
 	}
 
-	cfgFile := dotcfg.MustLoadCfg()
+	cfgFile := dotcfg.MustLoadCfg("")
 	if !cfgFile.NoGit {
 		for target, _ := range targetSet {
 			cmdrunner.RunOrFatal(exec.Command("git", "branch", "-D", target))
 		}
-		cfgFile.MustSerialize(nil)
+		cfgFile.MustSerialize("", nil)
 	}
 
 	snapsFile.Snapshots = newSnaps
-	snapsFile.MustSerialize(nil)
+	snapsFile.MustSerialize("", nil)
 }

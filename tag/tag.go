@@ -20,7 +20,7 @@ func Tag(filePath, templName string) error {
 		return err
 	}
 
-	cfgFile, err := dotcfg.LoadCfg()
+	cfgFile, err := dotcfg.LoadCfg("")
 	if err != nil {
 		return err
 	}
@@ -91,14 +91,14 @@ func Tag(filePath, templName string) error {
 		}
 	}
 
-	if err := cfgFile.Serialize(nil); err != nil {
+	if err := cfgFile.Serialize("", nil); err != nil {
 		return err
 	}
 	if !cfgFile.NoGit {
-		if err := cfgFile.Stage(); err != nil {
+		if err := cfgFile.Stage(""); err != nil {
 			return err
 		}
-		return cfgFile.Commit()
+		return cfgFile.Commit("")
 	}
 	return nil
 }

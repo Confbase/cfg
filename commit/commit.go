@@ -50,7 +50,7 @@ func Commit(cfg *Config) error {
 	}
 
 	// must add tracked files to staging, then commit
-	cfgFile, err := dotcfg.LoadCfg()
+	cfgFile, err := dotcfg.LoadCfg("")
 	if err != nil {
 		return err
 	}

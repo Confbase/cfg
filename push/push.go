@@ -12,7 +12,7 @@ import (
 )
 
 func Push(cfg Config) {
-	cfgFile := dotcfg.MustLoadCfg()
+	cfgFile := dotcfg.MustLoadCfg("")
 	keyFile := dotcfg.MustLoadKey()
 	snapsFile := dotcfg.MustLoadSnaps()
 

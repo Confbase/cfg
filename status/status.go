@@ -18,7 +18,7 @@ func MustShowStatus() {
 }
 
 func ShowStatus(w, wErr io.Writer) error {
-	cfgFile, err := dotcfg.LoadCfg()
+	cfgFile, err := dotcfg.LoadCfg("")
 	if err != nil {
 		return err
 	}

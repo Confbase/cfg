@@ -16,7 +16,7 @@ func isStdoutTty() bool {
 }
 
 func Ls(lsCfg *Config) {
-	cfg := dotcfg.MustLoadCfg()
+	cfg := dotcfg.MustLoadCfg("")
 
 	if isStdoutTty() && !lsCfg.NoTty {
 		d := decorate.New()

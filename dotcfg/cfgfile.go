@@ -32,27 +32,23 @@ func NewCfg() *File {
 	}
 }
 
-func LoadCfg() (*File, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("error: failed to get working directory")
-	}
-	filePath := filepath.Join(cwd, FileName)
+func LoadCfg(baseDir string) (*File, error) {
+	filePath := filepath.Join(baseDir, FileName)
 
 	f, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
 	if err != nil {
-		return nil, fmt.Errorf("error: failed to open %v", filePath)
+		return nil, fmt.Errorf("failed to open %v", filePath)
 	}
 
 	cfg := File{}
 	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
-		return nil, fmt.Errorf("error: failed to parse %v\n", filePath)
+		return nil, fmt.Errorf("failed to parse %v\n", filePath)
 	}
 	return &cfg, nil
 }
 
-func MustLoadCfg() *File {
-	cfgFile, err := LoadCfg()
+func MustLoadCfg(baseDir string) *File {
+	cfgFile, err := LoadCfg(baseDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
@@ -60,39 +56,20 @@ func MustLoadCfg() *File {
 	return cfgFile
 }
 
-func (f *File) MustSerialize(tx *rollback.Tx) {
-	if err := f.Serialize(tx); err != nil {
+func (f *File) MustSerialize(baseDir string, tx *rollback.Tx) {
+	if err := f.Serialize(baseDir, tx); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func (f *File) Serialize(tx *rollback.Tx) error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		if tx != nil {
-			txErr := tx.Rollback()
-			if txErr != nil {
-				return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
-			}
-		}
-		return err
-	}
-	filePath := filepath.Join(cwd, FileName)
-
-	cfgBytes, err := json.Marshal(f)
-	if err != nil {
-		err = fmt.Errorf("failed to marshal key\n%v", err)
-		txErr := tx.Rollback()
-		if txErr != nil {
-			return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
-		}
-		return err
-	}
+// Serialize serializes the cfgfile at the given destination.
+// If the destination is an empty string, cwd is used instead.
+func (cfgFile *File) Serialize(baseDir string, tx *rollback.Tx) error {
+	filePath := filepath.Join(baseDir, FileName)
 
 	isCreated := false
-	_, err = os.Stat(filePath)
-	if err != nil {
+	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			isCreated = true
 		} else {
@@ -105,8 +82,29 @@ func (f *File) Serialize(tx *rollback.Tx) error {
 		}
 	}
 
-	if err := ioutil.WriteFile(filePath, cfgBytes, 0644); err != nil {
+	f, err := os.Create(filePath)
+	if err != nil {
+		err = fmt.Errorf("failed to create or open %v\n%v", filePath, err)
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
+		}
+		return err
+	}
+	defer f.Close()
+
+	if err := json.NewEncoder(f).Encode(cfgFile); err != nil {
 		err = fmt.Errorf("failed to write %v\n%v", filePath, err)
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
+		}
+		return err
+	}
+
+	// explicitly close f and check the error to ensure the file has been written
+	if err := f.Close(); err != nil {
+		err = fmt.Errorf("failed to close file %v\n%v", filePath, err)
 		txErr := tx.Rollback()
 		if txErr != nil {
 			return fmt.Errorf("during error:\n%v\ntransaction rollback failed with error:\n%v", err, txErr)
@@ -120,30 +118,30 @@ func (f *File) Serialize(tx *rollback.Tx) error {
 	return nil
 }
 
-func mustStage(filePath string) {
-	if err := stage(filePath); err != nil {
+func mustStage(baseDir, filePath string) {
+	if err := stage(baseDir, filePath); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func stage(filePath string) error {
-	cmd := exec.Command("git", "add", filePath)
+func stage(baseDir, filePath string) error {
+	cmd := exec.Command("git", "-C", baseDir, "add", filePath)
 	if err := cmdrunner.PipeTo(cmd, nil, os.Stderr); err != nil {
 		return fmt.Errorf("failed to stage %v\n%v", filePath, err)
 	}
 	return nil
 }
 
-func mustCommit(msg string) {
-	if err := commit(msg); err != nil {
+func mustCommit(baseDir, msg string) {
+	if err := commit(baseDir, msg); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func commit(msg string) error {
-	cmd := exec.Command("git", "commit", "-m", msg)
+func commit(baseDir, msg string) error {
+	cmd := exec.Command("git", "-C", baseDir, "commit", "-m", msg)
 	if err := cmdrunner.PipeTo(cmd, nil, os.Stderr); err != nil {
 		cmdString := fmt.Sprintf("%v \"%v\"", strings.Join(cmd.Args[:3], " "), msg)
 		return fmt.Errorf("'%v' failed with error:\n%v\n", cmdString, err)
@@ -151,35 +149,30 @@ func commit(msg string) error {
 	return nil
 }
 
-func (cfg *File) MustStage() {
-	if err := cfg.Stage(); err != nil {
+func (cfg *File) MustStage(baseDir string) {
+	if err := cfg.Stage(baseDir); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func (cfg *File) Stage() error {
+func (cfg *File) Stage(baseDir string) error {
 	for _, t := range cfg.Templates {
-		if err := stage(t.FilePath); err != nil {
+		if err := stage(baseDir, t.FilePath); err != nil {
 			return err
 		}
 	}
 	for _, i := range cfg.Instances {
-		if err := stage(i.FilePath); err != nil {
+		if err := stage(baseDir, i.FilePath); err != nil {
 			return err
 		}
 	}
 	for _, s := range cfg.Singletons {
-		if err := stage(s.FilePath); err != nil {
+		if err := stage(baseDir, s.FilePath); err != nil {
 			return err
 		}
 	}
-	// TODO: this is broken when run from non-base dir
-	cwd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get working directory\n%v", err)
-	}
-	schemasDirPath := filepath.Join(cwd, SchemasDirName)
+	schemasDirPath := filepath.Join(baseDir, SchemasDirName)
 	if _, err := os.Stat(schemasDirPath); err != nil && os.IsNotExist(err) {
 		// create .cfg_schemas if not exist
 		// it can be incidentally rm'd by git, if it becomes an empty directory
@@ -187,37 +180,37 @@ func (cfg *File) Stage() error {
 			return err
 		}
 	}
-	if err := stage(schemasDirPath); err != nil {
+	if err := stage(baseDir, schemasDirPath); err != nil {
 		return err
 	}
-	return cfg.StageSelf()
+	return cfg.StageSelf(baseDir)
 }
 
-func (cfg *File) Commit() error {
+func (cfg *File) Commit(baseDir string) error {
 	// TODO: figure out changes and make appropriate message
-	return commit("add changes")
+	return commit(baseDir, "add changes")
 }
 
-func (cfg *File) MustCommit() {
-	if err := cfg.Commit(); err != nil {
+func (cfg *File) MustCommit(baseDir string) {
+	if err := cfg.Commit(baseDir); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func (cfg *File) StageSelf() error {
-	return stage(".cfg.json")
+func (cfg *File) StageSelf(baseDir string) error {
+	return stage(baseDir, ".cfg.json")
 }
 
-func (cfg *File) MustStageSelf() {
-	if err := cfg.StageSelf(); err != nil {
+func (cfg *File) MustStageSelf(baseDir string) {
+	if err := cfg.StageSelf(baseDir); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func (cfg *File) CommitSelf() error {
-	return commit("add .cfg.json")
+func (cfg *File) CommitSelf(baseDir string) error {
+	return commit(baseDir, "add .cfg.json")
 }
 
 type fileInfoTup struct {
