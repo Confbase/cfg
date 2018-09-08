@@ -17,15 +17,19 @@ func Add(name, url string) {
 		}
 	}
 
-	key := dotcfg.MustLoadKey()
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	key := dotcfg.MustLoadKey(baseDir)
 	if _, ok := key.Remotes[name]; ok {
 		fmt.Fprintf(os.Stderr, "error: a remote named %v already exists\n", name)
 		os.Exit(1)
 	}
 	key.Remotes[name] = url
 
-	// TODO: baseDir; tip: grep for all instances of MustLoadCfg("")
-	cfgFile := dotcfg.MustLoadCfg("")
+	cfgFile := dotcfg.MustLoadCfg(baseDir)
 	if !cfgFile.NoGit {
 		out, err := exec.Command("git", "remote", "add", name, url).CombinedOutput()
 		if err != nil {
@@ -36,18 +40,23 @@ func Add(name, url string) {
 		}
 	}
 
-	key.MustSerialize("", nil)
+	key.MustSerialize(baseDir, nil)
 }
 
 func Remove(name string) {
-	key := dotcfg.MustLoadKey()
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	key := dotcfg.MustLoadKey(baseDir)
 	if _, ok := key.Remotes[name]; !ok {
 		fmt.Fprintf(os.Stderr, "error: there is no remote named %v\n", name)
 		os.Exit(1)
 	}
 	delete(key.Remotes, name)
 
-	cfgFile := dotcfg.MustLoadCfg("")
+	cfgFile := dotcfg.MustLoadCfg(baseDir)
 	if !cfgFile.NoGit {
 		out, err := exec.Command("git", "remote", "rm", name).CombinedOutput()
 		if err != nil {
@@ -58,11 +67,16 @@ func Remove(name string) {
 		}
 	}
 
-	key.MustSerialize("", nil)
+	key.MustSerialize(baseDir, nil)
 }
 
 func Ls() {
-	key := dotcfg.MustLoadKey()
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	key := dotcfg.MustLoadKey(baseDir)
 	for name, url := range key.Remotes {
 		fmt.Printf("%v %v\n", name, url)
 	}

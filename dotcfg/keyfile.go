@@ -19,13 +19,8 @@ func NewKey(baseName string) *Key {
 	}
 }
 
-func MustLoadKey() *Key {
-	cwd, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
-		os.Exit(1)
-	}
-	keyPath := filepath.Join(cwd, DirName, KeyfileName)
+func MustLoadKey(baseDir string) *Key {
+	keyPath := filepath.Join(baseDir, DirName, KeyfileName)
 
 	f, err := os.OpenFile(keyPath, os.O_RDONLY, 0644)
 	if err != nil {

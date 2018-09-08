@@ -20,8 +20,11 @@ func MustNew(cfg *Config) {
 }
 
 func New(templName string, targets []string) error {
-	// TODO: baseDir; tip: grep for all instances of LoadCfg("")
-	cfgFile, err := dotcfg.LoadCfg("")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		return err
+	}
+	cfgFile, err := dotcfg.LoadCfg(baseDir)
 	if err != nil {
 		return err
 	}

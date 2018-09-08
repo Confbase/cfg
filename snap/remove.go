@@ -10,7 +10,12 @@ import (
 )
 
 func Remove(targets []string) {
-	snapsFile := dotcfg.MustLoadSnaps()
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	snapsFile := dotcfg.MustLoadSnaps(baseDir)
 	targetSet := make(map[string]bool)
 	for _, target := range targets {
 		if target == snapsFile.Current.Name {
@@ -26,14 +31,14 @@ func Remove(targets []string) {
 		}
 	}
 
-	cfgFile := dotcfg.MustLoadCfg("")
+	cfgFile := dotcfg.MustLoadCfg(baseDir)
 	if !cfgFile.NoGit {
 		for target, _ := range targetSet {
 			cmdrunner.RunOrFatal(exec.Command("git", "branch", "-D", target))
 		}
-		cfgFile.MustSerialize("", nil)
+		cfgFile.MustSerialize(baseDir, nil)
 	}
 
 	snapsFile.Snapshots = newSnaps
-	snapsFile.MustSerialize("", nil)
+	snapsFile.MustSerialize(baseDir, nil)
 }

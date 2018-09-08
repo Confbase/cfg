@@ -12,9 +12,14 @@ import (
 )
 
 func Push(cfg Config) {
-	cfgFile := dotcfg.MustLoadCfg("")
-	keyFile := dotcfg.MustLoadKey()
-	snapsFile := dotcfg.MustLoadSnaps()
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cfgFile := dotcfg.MustLoadCfg(baseDir)
+	keyFile := dotcfg.MustLoadKey(baseDir)
+	snapsFile := dotcfg.MustLoadSnaps(baseDir)
 
 	if len(keyFile.Remotes) == 0 {
 		fmt.Fprintf(os.Stderr, "error: there are no remotes\n")

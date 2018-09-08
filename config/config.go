@@ -8,7 +8,12 @@ import (
 )
 
 func Config(args []string) {
-	keyFile := dotcfg.MustLoadKey()
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	keyFile := dotcfg.MustLoadKey(baseDir)
 	// len(args) guaranteed to be even
 	for i := 0; i < len(args); i += 2 {
 		key := args[i]
@@ -23,5 +28,5 @@ func Config(args []string) {
 			os.Exit(1)
 		}
 	}
-	keyFile.MustSerialize("", nil)
+	keyFile.MustSerialize(baseDir, nil)
 }

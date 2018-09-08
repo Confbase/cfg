@@ -49,8 +49,12 @@ func Commit(cfg *Config) error {
 		return cmdrunner.PipeTo(commitCmd, os.Stdout, os.Stderr)
 	}
 
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		return err
+	}
 	// must add tracked files to staging, then commit
-	cfgFile, err := dotcfg.LoadCfg("")
+	cfgFile, err := dotcfg.LoadCfg(baseDir)
 	if err != nil {
 		return err
 	}

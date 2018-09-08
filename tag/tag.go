@@ -20,7 +20,12 @@ func Tag(filePath, templName string) error {
 		return err
 	}
 
-	cfgFile, err := dotcfg.LoadCfg("")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cfgFile, err := dotcfg.LoadCfg(baseDir)
 	if err != nil {
 		return err
 	}
@@ -91,14 +96,14 @@ func Tag(filePath, templName string) error {
 		}
 	}
 
-	if err := cfgFile.Serialize("", nil); err != nil {
+	if err := cfgFile.Serialize(baseDir, nil); err != nil {
 		return err
 	}
 	if !cfgFile.NoGit {
-		if err := cfgFile.Stage(""); err != nil {
+		if err := cfgFile.Stage(baseDir); err != nil {
 			return err
 		}
-		return cfgFile.Commit("")
+		return cfgFile.Commit(baseDir)
 	}
 	return nil
 }

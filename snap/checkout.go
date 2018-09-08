@@ -10,14 +10,19 @@ import (
 )
 
 func Checkout(name string) {
-	cfg := dotcfg.MustLoadCfg("")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cfg := dotcfg.MustLoadCfg(baseDir)
 	if cfg.NoGit {
 		fmt.Fprintf(os.Stderr, "error: checkout is not a valid command in a non-git base")
 		os.Exit(1)
 	}
 
 	snapExists := false
-	snaps := dotcfg.MustLoadSnaps()
+	snaps := dotcfg.MustLoadSnaps(baseDir)
 	var newSnap dotcfg.Snapshot
 	for _, s := range snaps.Snapshots {
 		if s.Name == name {
@@ -55,5 +60,5 @@ func Checkout(name string) {
 	}
 
 	snaps.Current = newSnap
-	snaps.MustSerialize("", nil)
+	snaps.MustSerialize(baseDir, nil)
 }

@@ -16,13 +16,18 @@ func isStdoutTty() bool {
 }
 
 func Ls(lsCfg *Config) {
-	cfg := dotcfg.MustLoadCfg("")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cfg := dotcfg.MustLoadCfg(baseDir)
 
 	if isStdoutTty() && !lsCfg.NoTty {
 		d := decorate.New()
 		d.Enabled = !lsCfg.NoColors
 
-		snaps := dotcfg.MustLoadSnaps()
+		snaps := dotcfg.MustLoadSnaps(baseDir)
 		fmt.Printf("## %v\n", snaps.Current.Name)
 
 		if !(lsCfg.DoLsTempls || lsCfg.DoLsInsts || lsCfg.DoLsSingles || lsCfg.DoLsUntracked) {

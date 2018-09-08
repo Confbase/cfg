@@ -11,14 +11,19 @@ import (
 )
 
 func Mark(cfg *Config) {
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+
 	if cfg.UnMark {
 		unmark.Unmark(cfg.Targets)
 		os.Exit(0)
 	}
 	if cfg.Singleton {
 		for _, target := range cfg.Targets {
-			// TODO: baseDir
-			track.Track("", target)
+			track.Track(baseDir, target)
 		}
 		os.Exit(0)
 	}
@@ -38,13 +43,12 @@ func Mark(cfg *Config) {
 		os.Exit(1)
 	}
 	target := cfg.Targets[0]
-	_, err := os.Stat(target)
-	if err != nil && os.IsNotExist(err) {
+	if _, err := os.Stat(target); err != nil && os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", target)
 		os.Exit(1)
 	}
 
-	cfgFile := dotcfg.MustLoadCfg("")
+	cfgFile := dotcfg.MustLoadCfg(baseDir)
 
 	containsTempl := false
 	templIndex := -1
@@ -84,10 +88,12 @@ func Mark(cfg *Config) {
 				}
 			}
 		}
+	} else {
+		fmt.Fprintf(os.Stderr, "warning: failed to infer schema of %v\n", target)
 	}
-	cfgFile.MustSerialize("", nil)
+	cfgFile.MustSerialize(baseDir, nil)
 	if !cfgFile.NoGit {
-		cfgFile.MustStage("")
-		cfgFile.MustCommit("")
+		cfgFile.MustStage(baseDir)
+		cfgFile.MustCommit(baseDir)
 	}
 }

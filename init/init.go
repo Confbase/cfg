@@ -94,7 +94,7 @@ func Init(cfg *Config) error {
 			return err
 		}
 		// TODO: check err on track.Track
-		track.Track(dest, filepath.Join(dest, ".gitignore"))
+		track.Track(dest, ".gitignore")
 	}
 
 	fmt.Printf("Initialized empty base at %v\n", dest)

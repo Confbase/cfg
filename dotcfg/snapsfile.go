@@ -16,13 +16,8 @@ func NewSnaps() *Snaps {
 	}
 }
 
-func MustLoadSnaps() *Snaps {
-	cwd, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get working directory\n")
-		os.Exit(1)
-	}
-	snapsPath := filepath.Join(cwd, DirName, SnapsFileName)
+func MustLoadSnaps(baseDir string) *Snaps {
+	snapsPath := filepath.Join(baseDir, DirName, SnapsFileName)
 
 	f, err := os.OpenFile(snapsPath, os.O_RDONLY, 0644)
 	if err != nil {

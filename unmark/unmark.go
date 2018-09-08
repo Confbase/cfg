@@ -17,7 +17,11 @@ func MustUnmark(targets []string) {
 }
 
 func Unmark(targets []string) error {
-	cfgFile, err := dotcfg.LoadCfg("")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		return err
+	}
+	cfgFile, err := dotcfg.LoadCfg(baseDir)
 	if err != nil {
 		return err
 	}
@@ -99,14 +103,14 @@ func Unmark(targets []string) error {
 		}
 	}
 
-	if err := cfgFile.Serialize("", nil); err != nil {
+	if err := cfgFile.Serialize(baseDir, nil); err != nil {
 		return err
 	}
 	if !cfgFile.NoGit {
-		if err := cfgFile.Stage(""); err != nil {
+		if err := cfgFile.Stage(baseDir); err != nil {
 			return err
 		}
-		if err := cfgFile.Commit(""); err != nil {
+		if err := cfgFile.Commit(baseDir); err != nil {
 			return err
 		}
 	}

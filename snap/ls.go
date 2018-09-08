@@ -2,13 +2,19 @@ package snap
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/Confbase/cfg/dotcfg"
 )
 
 func Ls(lineMode bool) {
-	snaps := dotcfg.MustLoadSnaps()
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	snaps := dotcfg.MustLoadSnaps(baseDir)
 	if lineMode {
 		for _, s := range snaps.Snapshots {
 			fmt.Println(s.Name)
