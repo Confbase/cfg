@@ -2,6 +2,7 @@ package new
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,13 +14,13 @@ import (
 )
 
 func MustNew(cfg *Config) {
-	if err := New(cfg.TemplName, cfg.Targets); err != nil {
+	if err := New(cfg.TemplName, cfg.Targets, cfg.DoUseDefaults); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func New(templName string, targets []string) error {
+func New(templName string, targets []string, doUseDefaults bool) error {
 	baseDir, err := dotcfg.GetBaseDir()
 	if err != nil {
 		return err
@@ -47,13 +48,30 @@ func New(templName string, targets []string) error {
 		templSchemaPath = filepath.Join(dotcfg.SchemasDirName, templObj.FilePath)
 	}
 
-	args := append([]string{"init", "-s", templSchemaPath}, targets...)
-	cmd := exec.Command("schema", args...)
-	if err := cmdrunner.PipeTo(cmd, os.Stdout, os.Stderr); err != nil {
+	if doUseDefaults {
+		args := append([]string{"init", "-s", templSchemaPath}, targets...)
+		cmd := exec.Command("schema", args...)
+		if err := cmdrunner.PipeTo(cmd, os.Stdout, os.Stderr); err != nil {
+			return err
+		}
+	}
+
+	templFile, err := os.Open(templObj.FilePath)
+
+	if err != nil {
 		return err
 	}
 
 	for _, target := range targets {
+		if !doUseDefaults {
+			f, err := os.Create(target)
+			if _, err = io.Copy(f, templFile); err != nil {
+				return err
+			}
+			if _, err = templFile.Seek(0, 0); err != nil {
+				return err
+			}
+		}
 		if strings.HasPrefix(target, "--") || strings.HasPrefix(target, "-") {
 			continue
 		}

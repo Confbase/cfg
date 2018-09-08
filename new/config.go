@@ -1,6 +1,7 @@
 package new
 
 type Config struct {
-	TemplName string
-	Targets   []string
+	TemplName     string
+	Targets       []string
+	DoUseDefaults bool
 }

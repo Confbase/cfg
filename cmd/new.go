@@ -59,4 +59,5 @@ $ cfg new myTempl myInstance.json -- --random`,
 
 func init() {
 	rootCmd.AddCommand(newCmd)
+	newCmd.Flags().BoolVarP(&newCfg.DoUseDefaults, "use-default-values", "d", false, "intialize fields with default values")
 }

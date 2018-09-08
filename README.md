@@ -13,3 +13,13 @@ Run `go get github.com/Confbase/cfg`
 After installation, the `cfg` binary will be in your `$GOBIN` directory.
 
 Run `cfg -h` or `cfg --help` for usage.
+
+# Contributing
+
+Issues and pull requests are welcome. If you are making a significant contribution (more than fixing a typo), add your name to the "Contributors" section in your PR.
+
+### Contributors
+
+
+* [Thomas Fischer](https://github.com/thomasdfischer)
+* [Rishi Desai](https://github.com/apache8080)
