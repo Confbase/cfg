@@ -77,12 +77,20 @@ func Tag(filePath, templName string) error {
 		}
 	}
 	if isNewInst {
-		inst := dotcfg.NewInstance(filePath)
+		absPath, relPath, err := dotcfg.GetAbsAndRelPaths(baseDir, filePath)
+		if err != nil {
+			return err
+		}
+		_, err = os.Stat(absPath)
+		if err != nil && os.IsNotExist(err) {
+			return err
+		}
+		inst := dotcfg.NewInstance(relPath)
 		inst.TemplNames = append(inst.TemplNames, templName)
 		cfgFile.Instances = append(cfgFile.Instances, *inst)
-		if err := cfgFile.Infer(filePath); err == nil {
+		if err := cfgFile.Infer(baseDir, filePath); err == nil {
 			// if infer was successful
-			if err := cfgFile.WarnDiffs(templName, filePath, os.Stderr); err != nil {
+			if err := cfgFile.WarnDiffs(baseDir, templName, inst.FilePath, os.Stderr); err != nil {
 				return err
 			}
 		}

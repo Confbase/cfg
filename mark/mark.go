@@ -42,9 +42,9 @@ func Mark(cfg *Config) {
 		fmt.Fprintf(os.Stderr, "any given template can only be associated to one file\n")
 		os.Exit(1)
 	}
-	target := cfg.Targets[0]
-	if _, err := os.Stat(target); err != nil && os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", target)
+	absPath, relPath, err := dotcfg.GetAbsAndRelPaths(baseDir, cfg.Targets[0])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v", err)
 		os.Exit(1)
 	}
 
@@ -62,7 +62,7 @@ func Mark(cfg *Config) {
 
 	templObj := dotcfg.Template{
 		Name:     cfg.Template,
-		FilePath: target,
+		FilePath: relPath,
 	}
 
 	if !containsTempl {
@@ -78,18 +78,18 @@ func Mark(cfg *Config) {
 		}
 		cfgFile.Templates[templIndex] = templObj
 	}
-	if err := cfgFile.Infer(target); err == nil {
+	if err := cfgFile.Infer(baseDir, cfg.Targets[0]); err == nil {
 		// if infer was successful
 		for _, inst := range cfgFile.Instances {
 			for _, templName := range inst.TemplNames {
 				if templName == templObj.Name {
-					cfgFile.MustWarnDiffs(templObj.Name, inst.FilePath, os.Stderr)
+					cfgFile.MustWarnDiffs(baseDir, templObj.Name, inst.FilePath, os.Stderr)
 					break
 				}
 			}
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, "warning: failed to infer schema of %v\n", target)
+		fmt.Fprintf(os.Stderr, "warning: failed to infer schema of %v\n", absPath)
 	}
 	cfgFile.MustSerialize(baseDir, nil)
 	if !cfgFile.NoGit {

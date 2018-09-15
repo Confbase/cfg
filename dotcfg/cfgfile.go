@@ -126,9 +126,19 @@ func mustStage(baseDir, filePath string) {
 }
 
 func stage(baseDir, filePath string) error {
-	cmd := exec.Command("git", "-C", baseDir, "add", filePath)
+	absPath, relPath, err := GetAbsAndRelPaths(baseDir, filePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v", err)
+		os.Exit(1)
+	}
+	_, err = os.Stat(absPath)
+	if err != nil && os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", absPath)
+		os.Exit(1)
+	}
+	cmd := exec.Command("git", "-C", baseDir, "add", relPath)
 	if err := cmdrunner.PipeTo(cmd, nil, os.Stderr); err != nil {
-		return fmt.Errorf("failed to stage %v\n%v", filePath, err)
+		return fmt.Errorf("failed to stage %v\n%v", absPath, err)
 	}
 	return nil
 }
@@ -158,17 +168,17 @@ func (cfg *File) MustStage(baseDir string) {
 
 func (cfg *File) Stage(baseDir string) error {
 	for _, t := range cfg.Templates {
-		if err := stage(baseDir, t.FilePath); err != nil {
+		if err := stage(baseDir, filepath.Join(baseDir, t.FilePath)); err != nil {
 			return err
 		}
 	}
 	for _, i := range cfg.Instances {
-		if err := stage(baseDir, i.FilePath); err != nil {
+		if err := stage(baseDir, filepath.Join(baseDir, i.FilePath)); err != nil {
 			return err
 		}
 	}
 	for _, s := range cfg.Singletons {
-		if err := stage(baseDir, s.FilePath); err != nil {
+		if err := stage(baseDir, filepath.Join(baseDir, s.FilePath)); err != nil {
 			return err
 		}
 	}
@@ -180,7 +190,7 @@ func (cfg *File) Stage(baseDir string) error {
 			return err
 		}
 	}
-	if err := stage(baseDir, schemasDirPath); err != nil {
+	if err := stage(baseDir, filepath.Join(schemasDirPath)); err != nil {
 		return err
 	}
 	return cfg.StageSelf(baseDir)
@@ -199,7 +209,7 @@ func (cfg *File) MustCommit(baseDir string) {
 }
 
 func (cfg *File) StageSelf(baseDir string) error {
-	return stage(baseDir, ".cfg.json")
+	return stage(baseDir, filepath.Join(baseDir, ".cfg.json"))
 }
 
 func (cfg *File) MustStageSelf(baseDir string) {
@@ -281,25 +291,32 @@ func (cfg *File) GetUntrackedFiles() ([]string, error) {
 	return untracked, nil
 }
 
-func (cfg *File) Infer(filePath string) error {
-	// TODO: filePath is assumed to be a relative path right now
-
-	// TODO: find cfg base dir
-	// there are lots of other places in the code like this
-	// which aren't marked with TODO comments
+// Infer takes a baseDir and a filePath which is either an absolute path or a
+// path relative to the cwd.
+func (cfg *File) Infer(baseDir, filePath string) error {
+	absPath, relPath, err := GetAbsAndRelPaths(baseDir, filePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v", err)
+		os.Exit(1)
+	}
+	_, err = os.Stat(absPath)
+	if err != nil && os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "error: the file '%v' does not exist\n", absPath)
+		os.Exit(1)
+	}
 
 	// TODO: should we leave this as `exec` or should we import code???
 	// leaving as `exec` means no infer features if shipping a single static binary
 	// (need to have the `schema` binary as well)
 	// on the other hand, it is a good way to increase `schema` usage
-	dest := filepath.Join(SchemasDirName, filePath)
+	dest := filepath.Join(baseDir, SchemasDirName, relPath)
 
 	parentDir := filepath.Dir(dest)
 	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
 		return err
 	}
 
-	f, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
+	f, err := os.OpenFile(absPath, os.O_RDONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -363,14 +380,14 @@ func (cfg *File) RmSchema(target string, onlyFromIndex bool) error {
 	return nil
 }
 
-func (cfgFile *File) MustWarnDiffs(templName, instFilePath string, wErr io.Writer) {
-	if err := cfgFile.WarnDiffs(templName, instFilePath, wErr); err != nil {
+func (cfgFile *File) MustWarnDiffs(baseDir, templName, instFilePath string, wErr io.Writer) {
+	if err := cfgFile.WarnDiffs(baseDir, templName, instFilePath, wErr); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func (cfgFile *File) WarnDiffs(templName, instFilePath string, wErr io.Writer) error {
+func (cfgFile *File) WarnDiffs(baseDir, templName, instFilePath string, wErr io.Writer) error {
 	var templSchemaPath string
 	for _, templ := range cfgFile.Templates {
 		if templ.Name == templName {
@@ -378,7 +395,7 @@ func (cfgFile *File) WarnDiffs(templName, instFilePath string, wErr io.Writer) e
 				templSchemaPath = templ.Schema.FilePath
 			} else {
 				// TODO: relative dir problems
-				templSchemaPath = filepath.Join(SchemasDirName, templ.FilePath)
+				templSchemaPath = filepath.Join(baseDir, SchemasDirName, templ.FilePath)
 			}
 			break
 		}
@@ -387,7 +404,7 @@ func (cfgFile *File) WarnDiffs(templName, instFilePath string, wErr io.Writer) e
 		return fmt.Errorf("template '%v' does not exist", templName)
 	}
 	// TODO: relative dir problems
-	instSchemaPath := filepath.Join(SchemasDirName, instFilePath)
+	instSchemaPath := filepath.Join(baseDir, SchemasDirName, instFilePath)
 
 	args := []string{
 		"diff",

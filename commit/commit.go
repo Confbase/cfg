@@ -69,7 +69,7 @@ func Commit(cfg *Config) error {
 			}
 		} else {
 			// TODO: add config variable + data structure to only do this to certain files
-			if err := cfgFile.Infer(templ.FilePath); err != nil {
+			if err := cfgFile.Infer(baseDir, filepath.Join(baseDir, templ.FilePath)); err != nil {
 				exiterr, ok := err.(*exec.ExitError)
 				if !ok {
 					return err
@@ -100,14 +100,14 @@ func Commit(cfg *Config) error {
 			}
 		} else {
 			// TODO: add config variable + data structure to only do this to certain files
-			if err := cfgFile.Infer(inst.FilePath); err != nil {
+			if err := cfgFile.Infer(baseDir, filepath.Join(baseDir, inst.FilePath)); err != nil {
 				return err
 			}
 			for _, templName := range inst.TemplNames {
 				for _, templ := range cfgFile.Templates {
 					if templ.Name == templName {
 						var errBuff bytes.Buffer
-						if cfgFile.WarnDiffs(templName, inst.FilePath, &errBuff); err != nil {
+						if cfgFile.WarnDiffs(baseDir, templName, inst.FilePath, &errBuff); err != nil {
 							exiterr, ok := err.(*exec.ExitError)
 							if !ok {
 								return err

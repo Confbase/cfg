@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"syscall"
 
 	"github.com/Confbase/cfg/dotcfg"
@@ -28,7 +29,7 @@ func Lint() error {
 	for _, templ := range cfgFile.Templates {
 		// TODO: add config variable + data structure to only do this to certain files
 		if templ.Schema.FilePath == "" {
-			if err := cfgFile.Infer(templ.FilePath); err != nil {
+			if err := cfgFile.Infer(baseDir, filepath.Join(baseDir, templ.FilePath)); err != nil {
 				exiterr, ok := err.(*exec.ExitError)
 				if !ok {
 					return err
@@ -57,11 +58,11 @@ func Lint() error {
 			if isInstOfTempl {
 				// TODO: add config variable + data structure to only do this to certain files
 				if inst.FilePath == "" {
-					if err := cfgFile.Infer(inst.FilePath); err != nil {
+					if err := cfgFile.Infer(baseDir, filepath.Join(baseDir, inst.FilePath)); err != nil {
 						return err
 					}
 				}
-				if err := cfgFile.WarnDiffs(templ.Name, inst.FilePath, os.Stderr); err != nil {
+				if err := cfgFile.WarnDiffs(baseDir, templ.Name, inst.FilePath, os.Stderr); err != nil {
 					return err
 				}
 			}
