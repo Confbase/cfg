@@ -63,6 +63,11 @@ func Remove(name string) {
 			fmt.Fprintf(os.Stderr, "'git remote rm %v' failed\n", name)
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
+
+			// serialize the key file anyways
+			// so the remote is removed
+			key.MustSerialize(baseDir, nil)
+
 			os.Exit(1)
 		}
 	}
