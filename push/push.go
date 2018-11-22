@@ -41,21 +41,27 @@ func Push(cfg Config) {
 	}
 
 	if !cfgFile.NoGit {
-		if cfg.Snapshot == "" {
-			snapName := snapsFile.Current.Name
-			out, err := exec.Command("git", "push", remote, snapName).CombinedOutput()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "'git push %v %v' failed\n", remote, snapName)
-				fmt.Fprintf(os.Stderr, "error: %v\n", err)
-				fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
-				os.Exit(1)
-			}
-			fmt.Print(string(out))
-			os.Exit(0)
+
+		snapName := cfg.Snapshot
+		if snapName == "" {
+			snapName = snapsFile.Current.Name
 		}
-		out, err := exec.Command("git", "push", remote, cfg.Snapshot).CombinedOutput()
+
+		pushCmd := exec.Command("git", "push", remote, snapName)
+		if cfg.IsForce {
+			pushCmd = exec.Command("git", "push", "--force",
+				remote, snapName)
+		}
+		out, err := pushCmd.CombinedOutput()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "'git push %v %v' failed\n", remote, cfg.Snapshot)
+			if cfg.IsForce {
+				fmt.Fprintf(os.Stderr,
+					"'git push --force %v %v' failed\n",
+					remote, snapName)
+			} else {
+				fmt.Fprintf(os.Stderr, "'git push %v %v' failed\n",
+					remote, snapName)
+			}
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			fmt.Fprintf(os.Stderr, "output: %v\n", string(out))
 			os.Exit(1)
@@ -68,7 +74,8 @@ func Push(cfg Config) {
 	if cfg.Snapshot == "" {
 		snapName = snapsFile.Current.Name
 	} else if cfg.Snapshot != snapsFile.Current.Name {
-		fmt.Fprintf(os.Stderr, "error: pushing a snap other than the current one is not allowed with --no-git\n")
+		fmt.Fprintf(os.Stderr, "error: pushing a snap other than "+
+			"the current one is not allowed with --no-git\n")
 		os.Exit(1)
 	}
 

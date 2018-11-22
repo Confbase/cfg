@@ -20,7 +20,7 @@ import (
 	"github.com/Confbase/cfg/push"
 )
 
-var cfg push.Config
+var pushCfg push.Config
 
 var pushCmd = &cobra.Command{
 	Use:   "push",
@@ -29,15 +29,16 @@ var pushCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		switch len(args) {
 		case 1:
-			cfg.Remote = args[0]
+			pushCfg.Remote = args[0]
 		case 2:
-			cfg.Remote = args[0]
-			cfg.Snapshot = args[1]
+			pushCfg.Remote = args[0]
+			pushCfg.Snapshot = args[1]
 		}
-		push.Push(cfg)
+		push.Push(pushCfg)
 	},
 }
 
 func init() {
+	pushCmd.Flags().BoolVarP(&pushCfg.IsForce, "force", "f", false, "force push")
 	rootCmd.AddCommand(pushCmd)
 }
