@@ -101,25 +101,36 @@ func Push(cfg Config) {
 	}
 
 	fmt.Println("building snapshot...")
-	r, w := io.Pipe()
-	go func() {
-		for _, filePath := range files {
-			if err := build.BuildSnap(w, filePath); err != nil {
-				fmt.Fprintf(os.Stderr, "error: %v\n", err)
-				os.Exit(1)
-			}
-		}
-		if err := w.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
-		}
-	}()
-
-	fmt.Println("pushing snapshot...")
-	// TODO: some nice ncurses progress thing
-	if err := send.SendSnap(remoteValue, r, keyFile.BaseName, snapName, true); err != nil {
+	if len(files) == 0 {
+		fmt.Fprintf(os.Stderr, "warning: no files to push\n")
+		os.Exit(0)
+	}
+	snapRdr, err := build.BuildSnap(files[0])
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("successfully pushed '%v/%v' to '%v'\n", keyFile.BaseName, snapName, remote)
+	for _, filePath := range files {
+		r, err := build.BuildSnap(filePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		snapRdr = io.MultiReader(snapRdr, r)
+	}
+
+	fmt.Println("pushing snapshot...")
+	// TODO: some nice ncurses progress thing
+	if err := send.SendSnap(
+		remoteValue,
+		snapRdr,
+		keyFile.BaseName,
+		snapName,
+		true,
+	); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("successfully pushed '%v/%v' to '%v'\n",
+		keyFile.BaseName, snapName, remote)
 }
