@@ -22,4 +22,5 @@ Issues and pull requests are welcome. If you are making a significant contributi
 
 
 * [Thomas Fischer](https://github.com/thomasdfischer)
+* [Drake Eidukas](https://github.com/Drake-Eidukas)
 * [Rishi Desai](https://github.com/apache8080)
