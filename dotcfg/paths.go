@@ -44,3 +44,32 @@ func GetAbsAndRelPaths(baseDir, filePath string) (string, string, error) {
 	}
 	return filepath.Join(baseDir, relPath), relPath, nil
 }
+
+// ConvertPathToRelative takes in a filepath, and returns the
+// full relative filepath, even if the filepath is not a child path.
+// This detects the current working directory when it computes the relative
+// path.
+func ConvertPathToRelative(filePath string) (string, error) {
+	if len(filePath) == 0 {
+		return "", fmt.Errorf("filepath is an empty string")
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	if !filepath.IsAbs(filePath) {
+		filePath, err = filepath.Abs(filePath)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	rel, err := filepath.Rel(cwd, filePath)
+	if err != nil {
+		return "", err
+	}
+
+	return rel, nil
+}
