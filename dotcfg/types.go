@@ -24,6 +24,7 @@ type File struct {
 	Instances  []Instance  `json:"instances"`
 	Singletons []Singleton `json:"singletons"`
 	NoGit      bool        `json:"noGit"`
+	BaseDir    string
 }
 
 type Singleton struct {

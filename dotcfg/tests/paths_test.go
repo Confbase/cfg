@@ -12,22 +12,22 @@ import (
 
 func TestConvertPathToRelative(t *testing.T) {
 	tests := []struct {
-		cwd          string
+		baseDir      string
 		filePath     string
 		relativePath string
 		err          error
 	}{
-		{cwd: "/", filePath: "/a", relativePath: "a", err: nil},
-		{cwd: "/", filePath: "/a/b", relativePath: "a/b", err: nil},
-		{cwd: "/a/b", filePath: "/c", relativePath: "../../c", err: nil},
-		{cwd: "/", filePath: "/", relativePath: ".", err: nil},
+		{baseDir: "/", filePath: "/a", relativePath: "a", err: nil},
+		{baseDir: "/", filePath: "/a/b", relativePath: "a/b", err: nil},
+		{baseDir: "/a/b", filePath: "/c", relativePath: "../../c", err: nil},
+		{baseDir: "/", filePath: "/", relativePath: ".", err: nil},
 	}
 
 	for _, test := range tests {
 		tempDir := os.TempDir()
 		defer os.RemoveAll(tempDir)
 
-		testDir := filepath.Join(tempDir, test.cwd)
+		testDir := filepath.Join(tempDir, test.baseDir)
 
 		testPath := test.filePath
 		if filepath.IsAbs(test.filePath) {

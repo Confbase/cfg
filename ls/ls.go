@@ -3,6 +3,7 @@ package ls
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -85,7 +86,13 @@ func LsTemplsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("templates")))
 	if len(cfg.Templates) > 0 {
 		for _, t := range cfg.Templates {
-			fmt.Printf("%v: %v\n", d.Green(t.Name), t.FilePath)
+			relativePath, err := dotcfg.ConvertPathToRelative(filepath.Join(cfg.BaseDir, t.FilePath))
+			if err != nil {
+				// This seems somewhat hacky... but I'm not sure how best to handle this
+				relativePath = t.FilePath
+			}
+
+			fmt.Printf("%v: %v\n", d.Green(t.Name), relativePath)
 		}
 	}
 }
@@ -93,7 +100,13 @@ func LsTemplsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 func LsTemplsTty(cfg *dotcfg.File) {
 	fmt.Println("templates")
 	for _, t := range cfg.Templates {
-		fmt.Printf("%v\t%v\n", t.Name, t.FilePath)
+		relativePath, err := dotcfg.ConvertPathToRelative(filepath.Join(cfg.BaseDir, t.FilePath))
+		if err != nil {
+			// This seems somewhat hacky... but I'm not sure how best to handle this
+			relativePath = t.FilePath
+		}
+
+		fmt.Printf("%v\t%v\n", t.Name, relativePath)
 	}
 }
 
@@ -102,7 +115,13 @@ func LsInstsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	if len(cfg.Templates) > 0 {
 		for _, inst := range cfg.Instances {
 			templsStr := strings.Join(inst.TemplNames, ", ")
-			fmt.Printf("%v: %v\n", d.Green(inst.FilePath), templsStr)
+			relativePath, err := dotcfg.ConvertPathToRelative(filepath.Join(cfg.BaseDir, inst.FilePath))
+			if err != nil {
+				// This seems somewhat hacky... but I'm not sure how best to handle this
+				relativePath = inst.FilePath
+			}
+
+			fmt.Printf("%v: %v\n", d.Green(relativePath), templsStr)
 		}
 	}
 }
@@ -111,21 +130,39 @@ func LsInstsTty(cfg *dotcfg.File) {
 	fmt.Println("instances")
 	for _, inst := range cfg.Instances {
 		templsStr := strings.Join(inst.TemplNames, ",")
-		fmt.Printf("%v\t%v\n", inst.FilePath, templsStr)
+		relativePath, err := dotcfg.ConvertPathToRelative(filepath.Join(cfg.BaseDir, inst.FilePath))
+		if err != nil {
+			// This seems somewhat hacky... but I'm not sure how best to handle this
+			relativePath = inst.FilePath
+		}
+
+		fmt.Printf("%v\t%v\n", relativePath, templsStr)
 	}
 }
 
 func LsSinglesHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("singletons")))
 	for _, s := range cfg.Singletons {
-		fmt.Printf("%v\n", s.FilePath)
+		relativePath, err := dotcfg.ConvertPathToRelative(filepath.Join(cfg.BaseDir, s.FilePath))
+		if err != nil {
+			// This seems somewhat hacky... but I'm not sure how best to handle this
+			relativePath = s.FilePath
+		}
+
+		fmt.Printf("%v\n", relativePath)
 	}
 }
 
 func LsSinglesTty(cfg *dotcfg.File) {
 	fmt.Println("singletons")
 	for _, s := range cfg.Singletons {
-		fmt.Println(s.FilePath)
+		relativePath, err := dotcfg.ConvertPathToRelative(filepath.Join(cfg.BaseDir, s.FilePath))
+		if err != nil {
+			// This seems somewhat hacky... but I'm not sure how best to handle this
+			relativePath = s.FilePath
+		}
+
+		fmt.Println(relativePath)
 	}
 }
 
