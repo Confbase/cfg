@@ -29,6 +29,7 @@ func NewCfg() *File {
 		Instances:  make([]Instance, 0),
 		Singletons: make([]Singleton, 0),
 		NoGit:      false,
+		BaseDir:    "",
 	}
 }
 
@@ -44,6 +45,8 @@ func LoadCfg(baseDir string) (*File, error) {
 	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse %v\n", filePath)
 	}
+	cfg.BaseDir = baseDir
+
 	return &cfg, nil
 }
 
