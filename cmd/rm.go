@@ -20,16 +20,26 @@ import (
 	"github.com/Confbase/cfg/rm"
 )
 
+// Configuration for the running of rm
+var rmCfg rm.Config
+
 var rmCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a file and unmark it",
-	Long:  `Removes a file and unmarks it.`,
-	Args:  cobra.MinimumNArgs(1),
+	Long: `Removes a file and unmarks it.
+	
+	By default, this will only operate on a single file, however, it 
+	is possible to recursively call 'cfg rm' on a directory and all of
+	its children through using the -r flag
+	`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rm.MustRm(args)
+		rmCfg.ToRemove = args
+		rm.MustRm(&rmCfg)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(rmCmd)
+	rmCmd.Flags().BoolVarP(&rmCfg.Recursive, "recursive", "r", false, "recursively call rm on all children of target")
 }
