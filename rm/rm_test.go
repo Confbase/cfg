@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	initPkg "github.com/Confbase/cfg/init"
@@ -25,8 +26,8 @@ func TestRm(t *testing.T) {
 
 	// automatic cleanup of testing directory
 	// NOTE: does not work if os.exit is called.
-	defer os.RemoveAll(nestedTestdir)
-	defer os.RemoveAll(testdir)
+	// defer os.RemoveAll(nestedTestdir)
+	// defer os.RemoveAll(testdir)
 
 	if err := os.Chdir(testdir); err != nil {
 		t.Fatal(err)
@@ -37,9 +38,14 @@ func TestRm(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		testFilePaths[0] = filePath1.Name()
+		relPath, err := filepath.Rel(testdir, filePath1.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		testFilePaths[0] = relPath
+
 		w := bufio.NewWriter(filePath1)
-		_, err := w.WriteString("{\"test_key\": 6}\n")
+		_, err = w.WriteString("{\"test_key\": 6}\n")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -51,10 +57,15 @@ func TestRm(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		testFilePaths[1] = filePath2.Name()
+		relPath, err := filepath.Rel(testdir, filePath2.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		testFilePaths[1] = relPath
+
 		w := bufio.NewWriter(filePath2)
 
-		_, err := w.WriteString("{\"test_key\": 5}\n")
+		_, err = w.WriteString("{\"test_key\": 5}\n")
 		if err != nil {
 			t.Fatal(err)
 		}
