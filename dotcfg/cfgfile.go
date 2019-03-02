@@ -223,56 +223,60 @@ func (cfg *File) CommitSelf(baseDir string) error {
 	return commit(baseDir, "add .cfg.json")
 }
 
+type FileInfo interface {
+	Name() string
+	IsDir() bool
+}
+type SentinelFileInfo struct{}
+
+func (s SentinelFileInfo) Name() string {
+	return "."
+}
+func (s SentinelFileInfo) IsDir() bool {
+	return true
+}
+
 type fileInfoTup struct {
 	baseDir string
-	fInfo   os.FileInfo
+	fInfo   FileInfo
 }
 
 func (cfg *File) GetUntrackedFiles() ([]string, error) {
-	trackedFiles := make(map[string]bool)
-	for _, t := range cfg.Templates {
-		trackedFiles[t.FilePath] = true
-	}
-	for _, i := range cfg.Instances {
-		trackedFiles[i.FilePath] = true
-	}
-	for _, s := range cfg.Singletons {
-		trackedFiles[s.FilePath] = true
-	}
-
-	// TODO: find cfg base dir
-	// there are lots of other places in the code like this
-	// which aren't marked with TODO comments
-	baseDir := "."
-	wdFileInfo, err := os.Stat(baseDir)
+	baseDir, err := GetBaseDir()
 	if err != nil {
 		return nil, err
+	}
+	trackedFiles := make(map[string]bool)
+	for _, t := range cfg.Templates {
+		trackedFiles[filepath.Join(baseDir, t.FilePath)] = true
+	}
+	for _, i := range cfg.Instances {
+		trackedFiles[filepath.Join(baseDir, i.FilePath)] = true
+	}
+	for _, s := range cfg.Singletons {
+		trackedFiles[filepath.Join(baseDir, s.FilePath)] = true
 	}
 
 	untracked := make([]string, 0)
 	stack := make([]fileInfoTup, 1)
-	stack[0] = fileInfoTup{baseDir, wdFileInfo}
+	stack[0] = fileInfoTup{baseDir, SentinelFileInfo{}}
 	for len(stack) > 0 {
 		var s fileInfoTup
 		s, stack = stack[len(stack)-1], stack[:len(stack)-1]
 		filePath := filepath.Join(s.baseDir, s.fInfo.Name())
 
-		// TODO: clean up
-		// this could have bugs based on working directory
-		// and relative paths
-		if strings.HasPrefix(filePath, ".git") {
+		if s.fInfo.Name() == ".git" {
 			continue
 		}
-		if strings.HasPrefix(filePath, ".cfg/") || strings.HasPrefix(filePath, ".cfg\\") {
+		if s.fInfo.Name() == ".cfg" {
 			continue
 		}
-		if strings.HasPrefix(filePath, ".cfg_schemas/") || strings.HasPrefix(filePath, ".cfg_schemas\\") {
+		if s.fInfo.Name() == ".cfg_schemas" {
 			continue
 		}
-		if filePath == ".cfg.json" {
+		if s.fInfo.Name() == ".cfg.json" {
 			continue
 		}
-
 		if s.fInfo.IsDir() {
 			fs, err := ioutil.ReadDir(filePath)
 			if err != nil {
@@ -284,7 +288,11 @@ func (cfg *File) GetUntrackedFiles() ([]string, error) {
 		} else {
 			_, isTracked := trackedFiles[filePath]
 			if !isTracked {
-				untracked = append(untracked, filePath)
+				relPath, err := GetRelativeToBaseDir(baseDir, filePath)
+				if err != nil {
+					return nil, err
+				}
+				untracked = append(untracked, relPath)
 			}
 		}
 	}

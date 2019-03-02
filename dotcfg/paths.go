@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// NormalizePath takes a baseDir and a filePath.
+// GetRelativeToBaseDir takes a baseDir and a filePath.
 // The relative path from baseDir to filePath is returned.
 // If filePath stats with /, it is interpreted as an absolute path.
 // Otherwise, it is is interpreted as a relative path.
@@ -29,9 +29,25 @@ func GetRelativeToBaseDir(baseDir, filePath string) (string, error) {
 	}
 	baseDir = filepath.Clean(baseDir)
 	if !strings.HasPrefix(filePath, baseDir) {
-		return "", fmt.Errorf("'%v' is not a child path of '%v'", filePath, baseDir)
+		i := 0
+		for {
+			if baseDir[i] != filePath[i] {
+				break
+			}
+			i++
+		}
+		nonDotDotPart := filePath[i:len(filePath)]
+		numSlashes := strings.Count(baseDir[i:len(baseDir)], "/")
+		relPath := ""
+		for j := 0; j < numSlashes+1; j++ {
+			relPath = relPath + "../"
+		}
+		return relPath + nonDotDotPart, nil
 	}
-	return filePath[len(baseDir)+1 : len(filePath)], nil // + 1 for the /
+	if filePath == baseDir {
+		return ".", nil
+	}
+	return filePath[len(baseDir)+1 : len(filePath)], nil
 }
 
 // GetAbsAndRelPaths takes a baseDir and an absolute or relative (to cwd) file
@@ -39,8 +55,5 @@ func GetRelativeToBaseDir(baseDir, filePath string) (string, error) {
 // returned, along with any errors which occured.
 func GetAbsAndRelPaths(baseDir, filePath string) (string, string, error) {
 	relPath, err := GetRelativeToBaseDir(baseDir, filePath)
-	if err != nil {
-		return "", "", err
-	}
-	return filepath.Join(baseDir, relPath), relPath, nil
+	return filepath.Join(baseDir, relPath), relPath, err
 }

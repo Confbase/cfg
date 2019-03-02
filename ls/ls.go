@@ -3,6 +3,7 @@ package ls
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -84,48 +85,144 @@ func Ls(lsCfg *Config) {
 func LsTemplsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("templates")))
 	if len(cfg.Templates) > 0 {
+		baseDir, err := dotcfg.GetBaseDir()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 		for _, t := range cfg.Templates {
-			fmt.Printf("%v: %v\n", d.Green(t.Name), t.FilePath)
+			absPath := filepath.Join(baseDir, t.FilePath)
+			relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Printf("%v: %v\n", d.Green(t.Name), relPath)
 		}
 	}
 }
 
 func LsTemplsTty(cfg *dotcfg.File) {
 	fmt.Println("templates")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 	for _, t := range cfg.Templates {
-		fmt.Printf("%v\t%v\n", t.Name, t.FilePath)
+		absPath := filepath.Join(baseDir, t.FilePath)
+		relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("%v\t%v\n", t.Name, relPath)
 	}
 }
 
 func LsInstsHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("instances")))
 	if len(cfg.Templates) > 0 {
+		baseDir, err := dotcfg.GetBaseDir()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 		for _, inst := range cfg.Instances {
+			absPath := filepath.Join(baseDir, inst.FilePath)
+			relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				os.Exit(1)
+			}
 			templsStr := strings.Join(inst.TemplNames, ", ")
-			fmt.Printf("%v: %v\n", d.Green(inst.FilePath), templsStr)
+			fmt.Printf("%v: %v\n", d.Green(relPath), templsStr)
 		}
 	}
 }
 
 func LsInstsTty(cfg *dotcfg.File) {
 	fmt.Println("instances")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 	for _, inst := range cfg.Instances {
+		absPath := filepath.Join(baseDir, inst.FilePath)
+		relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 		templsStr := strings.Join(inst.TemplNames, ",")
-		fmt.Printf("%v\t%v\n", inst.FilePath, templsStr)
+		fmt.Printf("%v\t%v\n", relPath, templsStr)
 	}
 }
 
 func LsSinglesHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 	fmt.Println(d.LightBlue(d.Title("singletons")))
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 	for _, s := range cfg.Singletons {
-		fmt.Printf("%v\n", s.FilePath)
+		absPath := filepath.Join(baseDir, s.FilePath)
+		relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("%v\n", relPath)
 	}
 }
 
 func LsSinglesTty(cfg *dotcfg.File) {
 	fmt.Println("singletons")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 	for _, s := range cfg.Singletons {
-		fmt.Println(s.FilePath)
+		absPath := filepath.Join(baseDir, s.FilePath)
+		relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(relPath)
 	}
 }
 
@@ -136,8 +233,24 @@ func LsUntrackedHuman(cfg *dotcfg.File, d *decorate.Decorator) {
 		os.Exit(1)
 	}
 	fmt.Println(d.LightBlue(d.Title("untracked files")))
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 	for _, uf := range untrackedFiles {
-		fmt.Println(uf)
+		absPath := filepath.Join(baseDir, uf)
+		relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(relPath)
 	}
 }
 
@@ -148,7 +261,23 @@ func LsUntrackedTty(cfg *dotcfg.File) {
 		os.Exit(1)
 	}
 	fmt.Println("untracked files")
+	baseDir, err := dotcfg.GetBaseDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 	for _, uf := range untrackedFiles {
-		fmt.Println(uf)
+		absPath := filepath.Join(baseDir, uf)
+		relPath, err := dotcfg.GetRelativeToBaseDir(cwd, absPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(relPath)
 	}
 }
